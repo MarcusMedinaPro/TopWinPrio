@@ -15,49 +15,55 @@ permissions:
 jobs:
   quality-check:
     name: 🔍 Analyze, Secure & Test
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
       # 1️⃣ Checkout
       - name: 🧭 Checkout code
         uses: actions/checkout@v4
 
-      # 2️⃣ Setup .NET
-      - name: ⚙️ Setup .NET
+      # 2️⃣ Setup tooling for legacy WinForms projects
+      - name: 📦 Setup NuGet
+        uses: nuget/setup-nuget@v1
+
+      - name: 🛠️ Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: ⚙️ Setup .NET SDK (tools)
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
 
-      # 3️⃣ Restore dependencies
-      - name: 📦 Restore
-        run: dotnet restore
+      # 3️⃣ Restore & build with classic tooling
+      - name: 📥 Restore packages
+        run: nuget restore TopWinPrio.sln
 
-      # 4️⃣ Build solution
-      - name: 🏗️ Build
-        run: dotnet build --configuration Release --no-restore
+      - name: 🧠 Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: csharp
 
-      # 5️⃣ Run tests with coverage
-      - name: 🧪 Test
-        run: dotnet test --configuration Release --no-build --collect:"XPlat Code Coverage"
+      - name: 🏗️ Build solution
+        run: msbuild TopWinPrio.sln /t:Build /p:Configuration=Release
 
-      # 6️⃣ Upload coverage to Codecov
-      - name: 📊 Upload coverage to Codecov
+      # 4️⃣ Tests & coverage (placeholder until automated tests exist)
+      - name: 🧪 Tests
+        shell: pwsh
+        run: |
+          Write-Host "No automated tests are defined for the legacy WinForms project yet."
+
+      - name: 📊 Upload coverage to Codecov (if available)
+        if: ${{ hashFiles('**/coverage.cobertura.xml') != '' }}
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: "**/coverage.cobertura.xml"
           fail_ci_if_error: false
 
-      # 7️⃣ Initialize CodeQL
-      - name: 🧠 Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: csharp
-
-      - name: 🧩 Perform CodeQL Analysis
+      # 5️⃣ Advanced analysis
+      - name: 🧠 Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
 
-      # 8️⃣ SonarCloud Scan
       - name: ☁️ SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
         env:
@@ -70,41 +76,46 @@ jobs:
             -Dsonar.cs.opencover.reportsPaths=**/coverage.cobertura.xml
             -Dsonar.verbose=true
 
-      # 9️⃣ Snyk vulnerability scan
       - name: 🔒 Snyk security check
         uses: snyk/actions/dotnet@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: --severity-threshold=medium --json-file-output=snyk-report.json
+          args: --file=TopWinPrio.CS/TopWinPrio.csproj --severity-threshold=medium --json-file-output=snyk-report.json
 
-      # 🔟 Generate combined markdown summary
+      # 6️⃣ Summary report
       - name: 🧾 Generate summary report
+        shell: pwsh
         run: |
-          echo "# 🧩 Quality & Security Report" > quality-report.md
-          echo "" >> quality-report.md
-          echo "## 🧠 CodeQL" >> quality-report.md
-          echo "Security analysis completed via GitHub CodeQL." >> quality-report.md
-          echo "- View details in [Security > Code Scanning Alerts](../../security/code-scanning)" >> quality-report.md
-          echo "" >> quality-report.md
-          echo "## ☁️ SonarCloud" >> quality-report.md
-          echo "Comprehensive code quality report available on [SonarCloud](https://sonarcloud.io/summary/new_code?id=MarcusMedina_TopWinPrio)." >> quality-report.md
-          echo "" >> quality-report.md
-          echo "## 🔒 Snyk Vulnerabilities" >> quality-report.md
-          if [ -f snyk-report.json ]; then
-            echo "\`\`\`json" >> quality-report.md
-            cat snyk-report.json | jq .vulnerabilities[0:5] >> quality-report.md
-            echo "\`\`\`" >> quality-report.md
-          else
-            echo "Snyk scan completed, no report file found (possibly no vulnerabilities)." >> quality-report.md
-          fi
-          echo "" >> quality-report.md
-          echo "## 📊 Test Coverage" >> quality-report.md
-          echo "Coverage results uploaded to [Codecov](https://app.codecov.io/gh/MarcusMedina/TopWinPrio)." >> quality-report.md
-          echo "" >> quality-report.md
-          echo "_Report generated on $(date -u)_." >> quality-report.md
+          $report = @()
+          $report += "# 🧩 Quality & Security Report"
+          $report += ""
+          $report += "## 🧠 CodeQL"
+          $report += "Security analysis completed via GitHub CodeQL."
+          $report += "- View details in [Security > Code Scanning Alerts](../../security/code-scanning)"
+          $report += ""
+          $report += "## ☁️ SonarCloud"
+          $report += "Comprehensive code quality report available on [SonarCloud](https://sonarcloud.io/summary/new_code?id=MarcusMedina_TopWinPrio)."
+          $report += ""
+          $report += "## 🔒 Snyk Vulnerabilities"
+          if (Test-Path snyk-report.json) {
+            $report += "\`\`\`json"
+            $report += (Get-Content snyk-report.json | ConvertFrom-Json | Select-Object -ExpandProperty vulnerabilities | Select-Object -First 5 | ConvertTo-Json -Depth 4)
+            $report += "\`\`\`"
+          } else {
+            $report += "Snyk scan completed, no report file found (possibly no vulnerabilities)."
+          }
+          $report += ""
+          $report += "## 📊 Test Coverage"
+          if ("${{ hashFiles('**/coverage.cobertura.xml') }}" -ne '') {
+            $report += "Coverage results uploaded to [Codecov](https://app.codecov.io/gh/MarcusMedina/TopWinPrio)."
+          } else {
+            $report += "No automated tests yet, so no coverage report was generated."
+          }
+          $report += ""
+          $report += "_Report generated on $(Get-Date -Format u)._"
+          $report | Out-File -FilePath quality-report.md -Encoding UTF8
 
-      # 1️⃣1️⃣ Upload markdown report as artifact
       - name: 📤 Upload Quality Report
         uses: actions/upload-artifact@v4
         with:
