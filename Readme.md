@@ -16,15 +16,15 @@ Current production build targets **.NET Framework 3.5** (Win32).
 
 - Windows XP SP3, Vista, and Windows 7 include 3.5 or install it via Windows Update.
 - Windows 8/8.1/10/11 must enable the optional ".NET Framework 3.5 (includes 2.0 and 3.0)" feature or use the offline installer.
-- The portable zip runs without an installer; it touches `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` only when you enable auto-start, so removing the folder leaves no residue.
+- The `TopWinPrio-exe-only.zip` artifact runs without an installer; it touches `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` only when you enable auto-start, so removing the folder leaves no residue.
 
 ## Downloads
 
-Releases are distributed via GitHub Releases only. Each tag includes:
+Releases are created automatically whenever a tag matching `v*` is pushed. Each release currently publishes:
 
-- `TopWinPrio-portable.zip` – portable build with the WinForms executable and configuration files.
-- `TopWinPrio-release/` – unpacked Release folder for advanced inspection.
-- `TopWinPrio.exe` – standalone executable for quick testing.
+- `TopWinPrio-release.zip` – zipped Release output (EXE, config, resources) for installers or manual deployment.
+- `TopWinPrio-exe-only.zip` – zip that contains only the WinForms executable for quick copies.
+- `TopWinPrio.exe` – standalone executable artifact for rapid verification.
 
 ## Building Locally
 
@@ -34,7 +34,7 @@ The legacy project lives in `TopWinPrio.CS/TopWinPrio.csproj`. Build it with:
 msbuild TopWinPrio.sln /t:Build /p:Configuration=Release
 ```
 
-The GitHub Action in `.github/workflows/build-legacy.yml` mirrors this process on a Windows runner, restoring NuGet packages, compiling Debug/Release, and publishing artifacts.
+The GitHub Action in `.github/workflows/build-legacy.yml` mirrors this process on a Windows runner, restoring NuGet packages, compiling Debug/Release, and publishing artifacts; when a tag is pushed the workflow also creates the GitHub Release and attaches the packaged assets automatically.
 
 ## Contributing
 

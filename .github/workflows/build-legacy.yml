@@ -3,7 +3,6 @@ name: Legacy WinForms Build
 on:
   push:
     branches:
-      - master
       - main
       - ci/**
     tags:
@@ -39,22 +38,54 @@ jobs:
           New-Item -ItemType Directory -Force -Path artifacts | Out-Null
           Copy-Item "TopWinPrio.CS/bin/Release/TopWinPrio.exe" "artifacts/TopWinPrio.exe" -Force
           Copy-Item "TopWinPrio.CS/bin/Release" "artifacts/Release" -Recurse -Force
-          Compress-Archive -Path "TopWinPrio.CS/bin/Release/*" -DestinationPath "artifacts/TopWinPrio-portable.zip" -Force
+          Compress-Archive -Path "TopWinPrio.CS/bin/Release/*" -DestinationPath "artifacts/TopWinPrio-release.zip" -Force
+          Compress-Archive -Path "TopWinPrio.CS/bin/Release/TopWinPrio.exe" -DestinationPath "artifacts/TopWinPrio-exe-only.zip" -Force
 
-      - name: Upload full release build
+      - name: Upload release folder
         uses: actions/upload-artifact@v4
         with:
           name: TopWinPrio-release
           path: artifacts/Release
 
-      - name: Upload portable zip
+      - name: Upload release zip
         uses: actions/upload-artifact@v4
         with:
-          name: TopWinPrio-portable
-          path: artifacts/TopWinPrio-portable.zip
+          name: TopWinPrio-release-zip
+          path: artifacts/TopWinPrio-release.zip
+
+      - name: Upload exe-only zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: TopWinPrio-exe-only
+          path: artifacts/TopWinPrio-exe-only.zip
 
       - name: Upload single executable
         uses: actions/upload-artifact@v4
         with:
           name: TopWinPrio-exe
           path: artifacts/TopWinPrio.exe
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Collect release assets
+        run: |
+          mkdir uploads
+          cp dist/TopWinPrio-release-zip/TopWinPrio-release.zip uploads/
+          cp dist/TopWinPrio-exe-only/TopWinPrio-exe-only.zip uploads/
+          cp dist/TopWinPrio-exe/TopWinPrio.exe uploads/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: uploads/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
