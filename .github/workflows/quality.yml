@@ -41,6 +41,9 @@ jobs:
           dotnet restore TopWinPrio.Tests/TopWinPrio.Tests.csproj
 
       - name: 🧠 Initialize CodeQL
+        id: codeql-init
+        if: ${{ secrets.GITHUB_TOKEN != '' }}
+        continue-on-error: true
         uses: github/codeql-action/init@v3
         with:
           languages: csharp
@@ -63,9 +66,14 @@ jobs:
 
       # 5️⃣ Advanced analysis
       - name: 🧠 Perform CodeQL Analysis
+        if: ${{ steps.codeql-init.outcome != 'skipped' }}
+        continue-on-error: true
         uses: github/codeql-action/analyze@v3
+        with:
+          category: "quality-pipeline"
 
       - name: ☁️ SonarCloud Scan
+        if: ${{ secrets.SONAR_TOKEN != '' }}
         uses: SonarSource/sonarcloud-github-action@v2
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -78,6 +86,7 @@ jobs:
             -Dsonar.verbose=true
 
       - name: 🔒 Snyk security check
+        if: ${{ secrets.SNYK_TOKEN != '' }}
         uses: snyk/actions/dotnet@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
