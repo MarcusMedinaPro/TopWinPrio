@@ -1,0 +1,112 @@
+name: 🧩 Full Quality & Security Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  quality-check:
+    name: 🔍 Analyze, Secure & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout
+      - name: 🧭 Checkout code
+        uses: actions/checkout@v4
+
+      # 2️⃣ Setup .NET
+      - name: ⚙️ Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      # 3️⃣ Restore dependencies
+      - name: 📦 Restore
+        run: dotnet restore
+
+      # 4️⃣ Build solution
+      - name: 🏗️ Build
+        run: dotnet build --configuration Release --no-restore
+
+      # 5️⃣ Run tests with coverage
+      - name: 🧪 Test
+        run: dotnet test --configuration Release --no-build --collect:"XPlat Code Coverage"
+
+      # 6️⃣ Upload coverage to Codecov
+      - name: 📊 Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: "**/coverage.cobertura.xml"
+          fail_ci_if_error: false
+
+      # 7️⃣ Initialize CodeQL
+      - name: 🧠 Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: csharp
+
+      - name: 🧩 Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+      # 8️⃣ SonarCloud Scan
+      - name: ☁️ SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=MarcusMedina_TopWinPrio
+            -Dsonar.organization=marcusmedina
+            -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.cs.opencover.reportsPaths=**/coverage.cobertura.xml
+            -Dsonar.verbose=true
+
+      # 9️⃣ Snyk vulnerability scan
+      - name: 🔒 Snyk security check
+        uses: snyk/actions/dotnet@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=medium --json-file-output=snyk-report.json
+
+      # 🔟 Generate combined markdown summary
+      - name: 🧾 Generate summary report
+        run: |
+          echo "# 🧩 Quality & Security Report" > quality-report.md
+          echo "" >> quality-report.md
+          echo "## 🧠 CodeQL" >> quality-report.md
+          echo "Security analysis completed via GitHub CodeQL." >> quality-report.md
+          echo "- View details in [Security > Code Scanning Alerts](../../security/code-scanning)" >> quality-report.md
+          echo "" >> quality-report.md
+          echo "## ☁️ SonarCloud" >> quality-report.md
+          echo "Comprehensive code quality report available on [SonarCloud](https://sonarcloud.io/summary/new_code?id=MarcusMedina_TopWinPrio)." >> quality-report.md
+          echo "" >> quality-report.md
+          echo "## 🔒 Snyk Vulnerabilities" >> quality-report.md
+          if [ -f snyk-report.json ]; then
+            echo "\`\`\`json" >> quality-report.md
+            cat snyk-report.json | jq .vulnerabilities[0:5] >> quality-report.md
+            echo "\`\`\`" >> quality-report.md
+          else
+            echo "Snyk scan completed, no report file found (possibly no vulnerabilities)." >> quality-report.md
+          fi
+          echo "" >> quality-report.md
+          echo "## 📊 Test Coverage" >> quality-report.md
+          echo "Coverage results uploaded to [Codecov](https://app.codecov.io/gh/MarcusMedina/TopWinPrio)." >> quality-report.md
+          echo "" >> quality-report.md
+          echo "_Report generated on $(date -u)_." >> quality-report.md
+
+      # 1️⃣1️⃣ Upload markdown report as artifact
+      - name: 📤 Upload Quality Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-report
+          path: quality-report.md
