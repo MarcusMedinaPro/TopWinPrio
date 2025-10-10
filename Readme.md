@@ -16,13 +16,13 @@
 [![Release date](https://img.shields.io/github/release-date/MarcusMedina/TopWinPrio?style=for-the-badge&logo=calendar)](https://github.com/MarcusMedina/TopWinPrio/releases)
 
 [![Build & Test](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/quality.yml/badge.svg)](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/quality.yml)
-[![SonarCloud Analysis](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/sonarcloud.yml/badge.svg)](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/sonarcloud.yml)
+[![SonarQube Cloud](https://sonarcloud.io/images/project_badges/sonarcloud-highlight.svg)](https://sonarcloud.io/summary/new_code?id=MarcusMedinaPro_TopWinPrio)
 
-[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=MarcusMedina_TopWinPrio&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=MarcusMedina_TopWinPrio)
-[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=MarcusMedina_TopWinPrio&metric=bugs)](https://sonarcloud.io/summary/new_code?id=MarcusMedina_TopWinPrio)
-[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=MarcusMedina_TopWinPrio&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=MarcusMedina_TopWinPrio)
-[![Security](https://sonarcloud.io/api/project_badges/measure?project=MarcusMedina_TopWinPrio&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=MarcusMedina_TopWinPrio)
-[![Maintainability](https://sonarcloud.io/api/project_badges/measure?project=MarcusMedina_TopWinPrio&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=MarcusMedina_TopWinPrio)
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=MarcusMedinaPro_TopWinPrio&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=MarcusMedinaPro_TopWinPrio)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=MarcusMedinaPro_TopWinPrio&metric=bugs)](https://sonarcloud.io/summary/new_code?id=MarcusMedinaPro_TopWinPrio)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=MarcusMedinaPro_TopWinPrio&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=MarcusMedinaPro_TopWinPrio)
+[![Security](https://sonarcloud.io/api/project_badges/measure?project=MarcusMedinaPro_TopWinPrio&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=MarcusMedinaPro_TopWinPrio)
+[![Maintainability](https://sonarcloud.io/api/project_badges/measure?project=MarcusMedinaPro_TopWinPrio&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=MarcusMedinaPro_TopWinPrio)
 
 
 
