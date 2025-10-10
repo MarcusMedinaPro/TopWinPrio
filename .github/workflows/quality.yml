@@ -70,14 +70,6 @@ jobs:
             -Dsonar.cs.opencover.reportsPaths=**/coverage.cobertura.xml
             -Dsonar.verbose=true
 
-      - name: 🔒 Snyk security check
-        if: ${{ secrets.SNYK_TOKEN != '' }}
-        uses: snyk/actions/dotnet@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --file=TopWinPrio.CS/TopWinPrio.csproj --severity-threshold=medium --json-file-output=snyk-report.json
-
       # 6️⃣ Summary report
       - name: 🧾 Generate summary report
         shell: pwsh
@@ -92,13 +84,7 @@ jobs:
           $report += "Comprehensive code quality report available on [SonarCloud](https://sonarcloud.io/summary/new_code?id=MarcusMedina_TopWinPrio)."
           $report += ""
           $report += "## 🔒 Snyk Vulnerabilities"
-          if (Test-Path snyk-report.json) {
-            $report += "\`\`\`json"
-            $report += (Get-Content snyk-report.json | ConvertFrom-Json | Select-Object -ExpandProperty vulnerabilities | Select-Object -First 5 | ConvertTo-Json -Depth 4)
-            $report += "\`\`\`"
-          } else {
-            $report += "Snyk scan completed, no report file found (possibly no vulnerabilities)."
-          }
+          $report += "Snyk scanning is disabled by default. Configure a dedicated Snyk workflow or enable it manually."
           $report += ""
           $report += "## 📊 Test Coverage"
           if ((Get-ChildItem -Path . -Recurse -Filter coverage.cobertura.xml -ErrorAction SilentlyContinue).Count -gt 0) {
