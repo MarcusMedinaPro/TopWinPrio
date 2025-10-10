@@ -2,7 +2,11 @@
 
 # 🪟 TopWinPrio
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://github.com/MarcusMedina/TopWinPrio/blob/main/LICENSE.txt)
 ![Open Source](https://badges.frapsoft.com/os/v3/open-source.svg?v=103)
+![Made with ❤️](https://img.shields.io/badge/Made%20with-%E2%9D%A4-red?style=for-the-badge)
+
+
 [![C#](https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=c-sharp&logoColor=white)](#)
 [![.NET](https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)](#)
 [![Windows](https://img.shields.io/badge/platform-Windows%20Desktop-blue?style=for-the-badge&logo=windows)](#)
@@ -11,19 +15,9 @@
 [![Total downloads](https://img.shields.io/github/downloads/MarcusMedina/TopWinPrio/total?style=for-the-badge&logo=github)](https://github.com/MarcusMedina/TopWinPrio/releases)
 [![Release date](https://img.shields.io/github/release-date/MarcusMedina/TopWinPrio?style=for-the-badge&logo=calendar)](https://github.com/MarcusMedina/TopWinPrio/releases)
 
-[![Legacy Build](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/build-legacy.yml/badge.svg?style=for-the-badge)](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/build-legacy.yml)
+[![Legacy Build](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/build-legacy.yml/badge.svg)](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/build-legacy.yml)
+[![Quality Pipeline](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/quality.yml/badge.svg)](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/quality.yml)
 
-[![Stars](https://img.shields.io/github/stars/MarcusMedina/TopWinPrio?style=social)](https://github.com/MarcusMedina/TopWinPrio/stargazers)
-[![Issues](https://img.shields.io/github/issues/MarcusMedina/TopWinPrio?style=for-the-badge&logo=github)](https://github.com/MarcusMedina/TopWinPrio/issues)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=for-the-badge)](https://github.com/MarcusMedina/TopWinPrio/pulls)
-
-[![License: GPLv3](https://img.shields.io/github/license/MarcusMedina/TopWinPrio.svg?style=for-the-badge&color=yellow)](https://github.com/MarcusMedina/TopWinPrio/blob/main/LICENSE)
-![Made with ❤️](https://img.shields.io/badge/Made%20with-%E2%9D%A4-red?style=for-the-badge)
-
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=MarcusMedina_TopWinPrio&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=MarcusMedina_TopWinPrio)
-[![Coverage](https://codecov.io/gh/MarcusMedina/TopWinPrio/branch/main/graph/badge.svg)](https://codecov.io/gh/MarcusMedina/TopWinPrio)
-[![Snyk Vulnerabilities](https://img.shields.io/snyk/vulnerabilities/github/MarcusMedina/TopWinPrio?label=Snyk%20Vulnerabilities)](https://snyk.io/test/github/MarcusMedina/TopWinPrio)
-[![CodeQL](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/quality.yml/badge.svg)](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/quality.yml)
 
 
 </p>
@@ -114,13 +108,21 @@ The GitHub Action in `.github/workflows/build-legacy.yml` mirrors this process o
 
 ## Roadmap
 
-| Milestone | Framework | Highlights |
-|-----------|-----------|------------|
-| Legacy Classic | .NET Framework 3.5 | CI-built binaries, documentation refresh, branding cleanup |
-| WinForms Modernization | .NET 4.x → .NET 6 → .NET 8 | Refactoring, analyzers, accessibility, signed artifacts |
-| Next-Gen UI | MAUI/WinUI + Windows Service | Background agent, modern configuration UI, improved installer |
+**Current Status**: ⏸️ Paused - Waiting for Certum code signing approval
 
-Track progress via [project boards](https://github.com/users/MarcusMedina/projects) (coming soon) or discussion threads.
+**Migration Strategy**: One .NET version at a time, sign with Certum, release, repeat.
+
+| Phase | Framework | Status | Release Tag |
+|-------|-----------|--------|-------------|
+| 1️⃣ Legacy | .NET Framework 3.5 | ✅ Complete (waiting for signing) | `v1.x-net35` |
+| 2️⃣ Modernization | .NET Framework 4.8 | ⏸️ Ready to start | `v2.x-net48` |
+| 3️⃣ Cross-platform prep | .NET 6 | 📋 Planned | `v3.x-net6` |
+| 4️⃣ Latest runtime | .NET 8 | 📋 Planned | `v4.x-net8` |
+| 5️⃣ Next-gen UI | MAUI/WinUI + Service | 🔮 Future (after v4.x) | `v5.x` |
+
+**Migration Focus**: Only framework upgrades until .NET 8. No feature work until v4.x is released.
+
+📖 **Full details**: See [MIGRATION_ROADMAP.md](MIGRATION_ROADMAP.md) for complete migration plan and checklist.
 
 ## Contributing
 

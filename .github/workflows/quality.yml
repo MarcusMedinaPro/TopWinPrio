@@ -43,12 +43,9 @@ jobs:
       - name: 🏗️ Build solution
         run: msbuild TopWinPrio.sln /t:Build /p:Configuration=Release
 
-      # 4️⃣ Tests & coverage (placeholder until automated tests exist)
+      # 4️⃣ Tests & coverage
       - name: 🧪 Run tests
-        shell: pwsh
-        run: |
-          & "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe" \
-            "${{ github.workspace }}\TopWinPrio.Tests\bin\Release\TopWinPrio.Tests.dll" /logger:trx
+        run: dotnet test TopWinPrio.Tests/TopWinPrio.Tests.csproj --configuration Release --no-restore --logger trx --collect:"XPlat Code Coverage"
 
       - name: 📊 Upload coverage to Codecov (if available)
         if: ${{ hashFiles('**/coverage.cobertura.xml') != '' }}
