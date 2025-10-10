@@ -1,33 +1,49 @@
 # TopWinPrio
 
-This is the original version published as v1.0.
+TopWinPrio monitors running processes and dynamically adjusts their priorities so the foreground application keeps its share of CPU time. The original Windows Forms code base dates back to 2008 and targets .NET Framework 3.5; this repository now preserves that legacy release and documents the roadmap toward modern Windows 11 support.
 
-TopWinPrio was released as "LunaWorX TopWinPrio", but since LunaWorX is now history. I decided to publish the source code here.
+## Project Status
 
-*The code is kind of messy but remember it was done 2008 when I was studying c#.*
+- **Legacy refresh (complete):** The historical v1.0 sources build on GitHub Actions and publish signed artifacts straight from CI. No functional changes were introduced, only pipeline automation.
+- **Framework upgrades (planned):** We will migrate the WinForms application through supported .NET targets—stopping at .NET 4.x, .NET 6, and finally .NET 8—releasing binaries for every milestone so users can pick the runtime that fits their environment.
+- **Modern rewrite (planned):** After the .NET 8 WinForms stabilisation, the app will be redesigned with a contemporary Windows 11 experience (MAUI/WinUI candidate) and a background service paired with a configuration UI.
 
-StyleCop was not happy with me when I opened the code 2019.
-:-)
+Follow progress and discussion in repository issues and pull requests. Branding has moved from LunaWorX to MarcusMedinaPro; any remaining references will be updated as files are touched.
 
-My plan is to make a more Windows 10 adapted version, but for now I'll just publish this version.
+## Runtime Requirements
 
-## Latest changes. 
-June 16, 2019 - Adapted the code to be more compatible with Stylecop. Besides that, no changes in the functionality was added.
+Current production build targets **.NET Framework 3.5** (Win32).
 
-## Download
-You can download the [original Zip](http://marcusmedina.pro/download/topwinprio/ "original Zip") with manual and installer from my Website.
+- Windows XP SP3, Vista, and Windows 7 include 3.5 or install it via Windows Update.
+- Windows 8/8.1/10/11 must enable the optional ".NET Framework 3.5 (includes 2.0 and 3.0)" feature or use the offline installer.
+- The portable zip runs without an installer; it touches `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` only when you enable auto-start, so removing the folder leaves no residue.
 
-## History
-Shortly after realeasing the app my harddrive crashed and I lost all my code. Yes I know, I should have stored it in the cloud, but I didn't.
-I used .Net reflector and got back my code, but since there was a lot going on in my life, I never released a proper version.
-Anyhow, here is the code for anywant who wants it.
+## Downloads
+
+Releases are distributed via GitHub Releases only. Each tag includes:
+
+- `TopWinPrio-portable.zip` – portable build with the WinForms executable and configuration files.
+- `TopWinPrio-release/` – unpacked Release folder for advanced inspection.
+- `TopWinPrio.exe` – standalone executable for quick testing.
+
+## Building Locally
+
+The legacy project lives in `TopWinPrio.CS/TopWinPrio.csproj`. Build it with:
+
+```bash
+msbuild TopWinPrio.sln /t:Build /p:Configuration=Release
+```
+
+The GitHub Action in `.github/workflows/build-legacy.yml` mirrors this process on a Windows runner, restoring NuGet packages, compiling Debug/Release, and publishing artifacts.
+
+## Contributing
+
+Contributor guidance—including coding style, testing expectations, and CI details—is maintained in [`AGENTS.md`](AGENTS.md). Target the `main` branch for fixes and feature work. If you plan to adjust branding or prepare the framework upgrades, coordinate via issues so releases align with the roadmap above.
 
 ## License
-This program is free software; you can redistribute it and/or modify it under the terms of the [GNU General Public License](LICENSE.txt "GNU General Public License") as published by the Free Software Foundation; version 3 of the License.
 
-### Links
-Here are some links of people who appreciated my app.
+TopWinPrio is licensed under the [GNU General Public License v3](LICENSE.txt). Commercial use is permitted within the GPL terms.
 
-* [Make your Apps run faster - Tekzilla](https://www.youtube.com/watch?v=Epc7vHYW0TQ "Make your Apps run faster - Tekzilla")
-* [How to fix PES 2014 LAG on PC with Direct3D overrider & LunaWorX net TopWinPrio](https://www.youtube.com/watch?v=hPZY27HC8o8 "How to fix PES 2014 LAG on PC with Direct3D overrider & LunaWorX net TopWinPrio")
-* [COMO REMOVER 99% DO LAG EM QUALQUER JOGO 2019!!!!!](https://www.youtube.com/watch?v=hDvI0EmO4qc "COMO REMOVER 99% DO LAG EM QUALQUER JOGO 2019!!!!!")
+## Credits & History
+
+I (Marcus Ackre Medina) originally released TopWinPrio while studying C#. The source was later recovered through decompilation after a disk failure and open-sourced so the community can keep it alive. Thank you to everyone who has shared tutorials, videos, and feedback over the years—the enthusiasm for a small utility is what keeps the project moving forward.
