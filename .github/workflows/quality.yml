@@ -57,19 +57,6 @@ jobs:
           fail_ci_if_error: false
 
       # 5️⃣ Advanced analysis
-      - name: ☁️ SonarCloud Scan
-        if: ${{ secrets.SONAR_TOKEN != '' }}
-        uses: SonarSource/sonarcloud-github-action@v2
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            -Dsonar.projectKey=MarcusMedina_TopWinPrio
-            -Dsonar.organization=marcusmedina
-            -Dsonar.host.url=https://sonarcloud.io
-            -Dsonar.cs.opencover.reportsPaths=**/coverage.cobertura.xml
-            -Dsonar.verbose=true
-
       # 6️⃣ Summary report
       - name: 🧾 Generate summary report
         shell: pwsh
@@ -81,7 +68,7 @@ jobs:
           $report += "CodeQL scanning is not enabled by default in this pipeline. Configure a dedicated CodeQL workflow to receive code scanning alerts."
           $report += ""
           $report += "## ☁️ SonarCloud"
-          $report += "Comprehensive code quality report available on [SonarCloud](https://sonarcloud.io/summary/new_code?id=MarcusMedina_TopWinPrio)."
+          $report += "SonarCloud analysis is not part of the default pipeline. Configure it in a separate workflow if needed."
           $report += ""
           $report += "## 🔒 Snyk Vulnerabilities"
           $report += "Snyk scanning is disabled by default. Configure a dedicated Snyk workflow or enable it manually."
