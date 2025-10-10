@@ -1,0 +1,9 @@
+# This workflow is disabled - using SonarCloud Automatic Analysis instead
+#
+# Automatic Analysis is simpler and doesn't require CI integration.
+# SonarCloud automatically scans code when pushed to main branch.
+#
+# To re-enable CI-based analysis:
+# 1. Disable Automatic Analysis in SonarCloud
+# 2. Rename this file back to sonarcloud.yml
+# 3. Ensure SONAR_TOKEN secret is set
