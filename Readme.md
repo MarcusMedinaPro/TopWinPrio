@@ -15,8 +15,14 @@
 [![Total downloads](https://img.shields.io/github/downloads/MarcusMedina/TopWinPrio/total?style=for-the-badge&logo=github)](https://github.com/MarcusMedina/TopWinPrio/releases)
 [![Release date](https://img.shields.io/github/release-date/MarcusMedina/TopWinPrio?style=for-the-badge&logo=calendar)](https://github.com/MarcusMedina/TopWinPrio/releases)
 
-[![Legacy Build](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/build-legacy.yml/badge.svg)](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/build-legacy.yml)
-[![Quality Pipeline](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/quality.yml/badge.svg)](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/quality.yml)
+[![Build & Test](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/quality.yml/badge.svg)](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/quality.yml)
+[![SonarCloud Analysis](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/sonarcloud.yml/badge.svg)](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/sonarcloud.yml)
+
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=MarcusMedina_TopWinPrio&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=MarcusMedina_TopWinPrio)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=MarcusMedina_TopWinPrio&metric=bugs)](https://sonarcloud.io/summary/new_code?id=MarcusMedina_TopWinPrio)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=MarcusMedina_TopWinPrio&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=MarcusMedina_TopWinPrio)
+[![Security](https://sonarcloud.io/api/project_badges/measure?project=MarcusMedina_TopWinPrio&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=MarcusMedina_TopWinPrio)
+[![Maintainability](https://sonarcloud.io/api/project_badges/measure?project=MarcusMedina_TopWinPrio&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=MarcusMedina_TopWinPrio)
 
 
 

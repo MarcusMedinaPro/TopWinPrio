@@ -1,4 +1,4 @@
-name: 🧩 Full Quality & Security Pipeline
+name: 🧪 Build & Test
 
 on:
   push:
@@ -9,12 +9,10 @@ on:
 
 permissions:
   contents: read
-  security-events: write
-  actions: read
 
 jobs:
   quality-check:
-    name: 🔍 Analyze, Secure & Test
+    name: 🔍 Build & Test
     runs-on: windows-latest
 
     steps:
@@ -34,54 +32,41 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      # 3️⃣ Restore & build with classic tooling
+      # 3️⃣ Restore packages
       - name: 📥 Restore packages
         run: |
           nuget restore TopWinPrio.sln
           dotnet restore TopWinPrio.Tests/TopWinPrio.Tests.csproj
 
+      # 4️⃣ Build solution
       - name: 🏗️ Build solution
         run: msbuild TopWinPrio.sln /t:Build /p:Configuration=Release
 
-      # 4️⃣ Tests & coverage
+      # 5️⃣ Run tests
       - name: 🧪 Run tests
-        run: dotnet test TopWinPrio.Tests/TopWinPrio.Tests.csproj --configuration Release --no-restore --logger trx --collect:"XPlat Code Coverage"
+        run: dotnet test TopWinPrio.Tests/TopWinPrio.Tests.csproj --configuration Release --no-restore --logger trx
 
-      - name: 📊 Upload coverage to Codecov (if available)
-        if: ${{ hashFiles('**/coverage.cobertura.xml') != '' }}
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: "**/coverage.cobertura.xml"
-          fail_ci_if_error: false
-
-      # 5️⃣ Advanced analysis
-      # 6️⃣ Summary report
+      # 6️⃣ Generate summary report
       - name: 🧾 Generate summary report
         shell: pwsh
         run: |
           $report = @()
-          $report += "# 🧩 Quality & Security Report"
+          $report += "# 🧪 Build & Test Report"
           $report += ""
-          $report += "## 🧠 CodeQL"
-          $report += "CodeQL scanning is not enabled by default in this pipeline. Configure a dedicated CodeQL workflow to receive code scanning alerts."
+          $report += "## ✅ Build Status"
+          $report += "Solution built successfully with MSBuild (.NET Framework 3.5)."
           $report += ""
-          $report += "## ☁️ SonarCloud"
-          $report += "SonarCloud analysis is not part of the default pipeline. Configure it in a separate workflow if needed."
+          $report += "## 🧪 Test Results"
+          $report += "Tests executed successfully."
           $report += ""
-          $report += "## 🔒 Snyk Vulnerabilities"
-          $report += "Snyk scanning is disabled by default. Configure a dedicated Snyk workflow or enable it manually."
+          $report += "## 📋 Code Analysis"
+          $report += "For comprehensive analysis, see:"
+          $report += "- [SonarCloud Analysis](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/sonarcloud.yml)"
           $report += ""
-          $report += "## 📊 Test Coverage"
-          if ((Get-ChildItem -Path . -Recurse -Filter coverage.cobertura.xml -ErrorAction SilentlyContinue).Count -gt 0) {
-            $report += "Coverage results uploaded to [Codecov](https://app.codecov.io/gh/MarcusMedina/TopWinPrio)."
-          } else {
-            $report += "Tests executed via MSTest (no coverage collector configured)."
-          }
-          $report += ""
-          $report += "_Report generated on $(Get-Date -Format u)._"
+          $report += "_Report generated on $(Get-Date -Format u)_"
           $report | Out-File -FilePath quality-report.md -Encoding UTF8
 
+      # 7️⃣ Upload Quality Report
       - name: 📤 Upload Quality Report
         uses: actions/upload-artifact@v4
         with:
