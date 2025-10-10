@@ -1,0 +1,59 @@
+name: Legacy WinForms Build
+
+on:
+  push:
+    branches:
+      - master
+      - main
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup NuGet
+        uses: nuget/setup-nuget@v1
+
+      - name: Restore packages
+        run: nuget restore TopWinPrio.sln
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build Debug
+        run: msbuild TopWinPrio.sln /t:Build /p:Configuration=Debug
+
+      - name: Build Release
+        run: msbuild TopWinPrio.sln /t:Build /p:Configuration=Release
+
+      - name: Prepare artifacts
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          Copy-Item "TopWinPrio.CS/bin/Release/TopWinPrio.exe" "artifacts/TopWinPrio.exe" -Force
+          Copy-Item "TopWinPrio.CS/bin/Release" "artifacts/Release" -Recurse -Force
+          Compress-Archive -Path "TopWinPrio.CS/bin/Release/*" -DestinationPath "artifacts/TopWinPrio-portable.zip" -Force
+
+      - name: Upload full release build
+        uses: actions/upload-artifact@v4
+        with:
+          name: TopWinPrio-release
+          path: artifacts/Release
+
+      - name: Upload portable zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: TopWinPrio-portable
+          path: artifacts/TopWinPrio-portable.zip
+
+      - name: Upload single executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: TopWinPrio-exe
+          path: artifacts/TopWinPrio.exe
