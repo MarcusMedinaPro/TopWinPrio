@@ -16,7 +16,7 @@
 [![Release date](https://img.shields.io/github/release-date/MarcusMedina/TopWinPrio?style=for-the-badge&logo=calendar)](https://github.com/MarcusMedina/TopWinPrio/releases)
 
 [![Build & Test](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/quality.yml/badge.svg)](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/quality.yml)
-[![SonarQube Cloud](https://sonarcloud.io/images/project_badges/sonarcloud-highlight.svg)](https://sonarcloud.io/summary/new_code?id=MarcusMedinaPro_TopWinPrio)
+[![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-highlight.svg)](https://sonarcloud.io/summary/new_code?id=MarcusMedinaPro_TopWinPrio)
 
 [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=MarcusMedinaPro_TopWinPrio&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=MarcusMedinaPro_TopWinPrio)
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=MarcusMedinaPro_TopWinPrio&metric=bugs)](https://sonarcloud.io/summary/new_code?id=MarcusMedinaPro_TopWinPrio)
