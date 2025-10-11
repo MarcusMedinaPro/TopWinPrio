@@ -21,6 +21,13 @@ namespace TopWinPrio
     internal sealed class Program
     {
         /// <summary>
+        /// Prevents a default instance of the <see cref="Program"/> class from being created.
+        /// </summary>
+        private Program()
+        {
+        }
+
+        /// <summary>
         /// The Main.
         /// </summary>
         [STAThread]

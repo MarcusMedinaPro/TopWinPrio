@@ -1041,77 +1041,130 @@ namespace TopWinPrio
         private void TimerTopWindowCheck_Tick(object sender, EventArgs e)
         {
             timerTopWindowCheck.Enabled = false;
-            var i = NativeMethods.GetTopWindowHandle;
-            if (i != lastHandle)
+            var currentHandle = NativeMethods.GetTopWindowHandle;
+
+            if (currentHandle != lastHandle)
             {
-                SetProcessPrio(oldProc, oldProc.LastPrio);
-                lastHandle = i;
-                var process = Process.GetProcessById(NativeMethods.GetTopWindowProcessID);
-                var flag = process != null;
-                if (flag)
-                {
-                    flag = process.Id > 0;
-                }
-
-                if (flag && !boostExplorerOption.Checked)
-                {
-                    flag = process.ProcessName != "explorer";
-                }
-
-                if (flag)
-                {
-                    flag = process.Id != Process.GetCurrentProcess().Id;
-                }
-
-                if (flag)
-                {
-                    MainForm.ProcessData processData1 = null;
-                    try
-                    {
-                        var processData2 = new MainForm.ProcessData
-                        {
-                            ProcessID = process.Id,
-                            LastPrio = process.PriorityClass,
-                        };
-                        processData1 = processData2;
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine(ex.Message);
-                    }
-
-                    // if (processData1 != null) // Testing to see if the If is necessary.
-                    {
-                        if (inactiveList.Text != "Default")
-                        {
-                            processData1.LastPrio = (ProcessPriorityClass)Enum.Parse(typeof(ProcessPriorityClass), inactiveList.Text);
-                        }
-
-                        var processPriorityClass = (ProcessPriorityClass)Enum.Parse(typeof(ProcessPriorityClass), activeList.Text);
-                        if (SetProcessPrio(processData1, processPriorityClass))
-                        {
-                            var dateTime = DateTime.Now;
-                            var listViewItem = new ListViewItem(dateTime.ToShortTimeString());
-                            var s = NativeMethods.GetTopWindowText;
-                            if (s?.Length == 0)
-                            {
-                                s = process.ProcessName;
-                            }
-
-                            listViewItem.SubItems.Add(s);
-                            logList.Items.Insert(0, listViewItem);
-                            if (logList.Items.Count > 13)
-                            {
-                                logList.Items.RemoveAt(13);
-                            }
-                        }
-
-                        oldProc = processData1;
-                    }
-                }
+                ProcessWindowChange(currentHandle);
             }
 
             timerTopWindowCheck.Enabled = true;
+        }
+
+        /// <summary>
+        /// Processes window change and updates priority
+        /// </summary>
+        /// <param name="newHandle">The new window handle</param>
+        private void ProcessWindowChange(int newHandle)
+        {
+            SetProcessPrio(oldProc, oldProc.LastPrio);
+            lastHandle = newHandle;
+
+            var process = Process.GetProcessById(NativeMethods.GetTopWindowProcessID);
+
+            if (!ShouldBoostProcess(process))
+            {
+                return;
+            }
+
+            var processData = CreateProcessData(process);
+            if (processData != null)
+            {
+                UpdateProcessPriority(processData, process);
+            }
+        }
+
+        /// <summary>
+        /// Determines if process should be boosted
+        /// </summary>
+        /// <param name="process">The process to check</param>
+        /// <returns>True if should boost, false otherwise</returns>
+        private bool ShouldBoostProcess(Process process)
+        {
+            if (process == null || process.Id <= 0)
+            {
+                return false;
+            }
+
+            if (!boostExplorerOption.Checked && process.ProcessName == "explorer")
+            {
+                return false;
+            }
+
+            if (process.Id == Process.GetCurrentProcess().Id)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Creates ProcessData from process
+        /// </summary>
+        /// <param name="process">The process</param>
+        /// <returns>ProcessData or null if failed</returns>
+        private MainForm.ProcessData CreateProcessData(Process process)
+        {
+            try
+            {
+                return new MainForm.ProcessData
+                {
+                    ProcessID = process.Id,
+                    LastPrio = process.PriorityClass,
+                };
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Updates process priority and logs the change
+        /// </summary>
+        /// <param name="processData">The process data</param>
+        /// <param name="process">The process</param>
+        private void UpdateProcessPriority(MainForm.ProcessData processData, Process process)
+        {
+            if (inactiveList.Text != "Default")
+            {
+                processData.LastPrio = (ProcessPriorityClass)Enum.Parse(typeof(ProcessPriorityClass), inactiveList.Text);
+            }
+
+            var targetPriority = (ProcessPriorityClass)Enum.Parse(typeof(ProcessPriorityClass), activeList.Text);
+
+            if (SetProcessPrio(processData, targetPriority))
+            {
+                LogPriorityChange(process);
+            }
+
+            oldProc = processData;
+        }
+
+        /// <summary>
+        /// Logs priority change to list
+        /// </summary>
+        /// <param name="process">The process that changed</param>
+        private void LogPriorityChange(Process process)
+        {
+            var timestamp = DateTime.Now;
+            var listItem = new ListViewItem(timestamp.ToShortTimeString());
+
+            var windowTitle = NativeMethods.GetTopWindowText;
+            if (string.IsNullOrEmpty(windowTitle))
+            {
+                windowTitle = process.ProcessName;
+            }
+
+            listItem.SubItems.Add(windowTitle);
+            logList.Items.Insert(0, listItem);
+
+            if (logList.Items.Count > 13)
+            {
+                logList.Items.RemoveAt(13);
+            }
         }
 
         /// <summary>
