@@ -39,7 +39,7 @@ namespace TopWinPrio
             }
 
             var s = (string)registryKey.GetValue(keyName);
-            return s == null ? false : s == assemblyLocation;
+            return s != null && s == assemblyLocation;
         }
 
         /// <summary>

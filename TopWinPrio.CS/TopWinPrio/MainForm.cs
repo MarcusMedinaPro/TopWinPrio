@@ -482,8 +482,8 @@ namespace TopWinPrio
             this.allTabs = new System.Windows.Forms.TabControl();
             this.prioList = new System.Windows.Forms.TabPage();
             this.logList = new System.Windows.Forms.ListView();
-            this.clmTime = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.clmWindow = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.clmTime = new System.Windows.Forms.ColumnHeader();
+            this.clmWindow = new System.Windows.Forms.ColumnHeader();
             this.infoLabel = new System.Windows.Forms.Label();
             this.logoPic = new System.Windows.Forms.PictureBox();
             this.boostSettings = new System.Windows.Forms.TabPage();
@@ -1198,7 +1198,7 @@ namespace TopWinPrio
         /// <summary>
         /// Defines the <see cref="ProcessData"/>.
         /// </summary>
-        private class ProcessData
+        private sealed class ProcessData
         {
             /// <summary>
             /// Gets or sets the LastPrio Gets or sets LastPrio.
