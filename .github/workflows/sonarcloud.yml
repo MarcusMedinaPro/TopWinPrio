@@ -1,59 +1,13 @@
-name: SonarCloud Analysis
-
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-  workflow_dispatch:
-
-jobs:
-  sonarcloud:
-    name: SonarCloud Scan
-    runs-on: windows-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for better analysis
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 8.0.x
-
-      - name: Setup NuGet
-        uses: nuget/setup-nuget@v1
-
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
-
-      - name: Cache SonarCloud packages
-        uses: actions/cache@v4
-        with:
-          path: ~\.sonar\cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
-
-      - name: Install SonarCloud scanner
-        run: |
-          dotnet tool install --global dotnet-sonarscanner
-
-      - name: Restore NuGet packages
-        run: nuget restore TopWinPrio.sln
-
-      - name: Begin SonarCloud scan
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          dotnet sonarscanner begin /k:"MarcusMedinaPro_TopWinPrio" /o:"marcusmedinapro" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
-
-      - name: Build solution
-        run: msbuild TopWinPrio.sln /t:Build /p:Configuration=Release
-
-      - name: End SonarCloud scan
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+# This workflow is DISABLED - using SonarCloud Automatic Analysis instead
+#
+# Automatic Analysis is simpler and doesn't require CI integration.
+# SonarCloud automatically scans code when pushed to main branch.
+#
+# To re-enable CI-based analysis:
+# 1. Disable Automatic Analysis in SonarCloud project settings
+# 2. Restore the CI workflow from sonarcloud.yml.disabled
+# 3. Ensure SONAR_TOKEN secret is set in GitHub repository settings
+#
+# NOTE: This file is intentionally not a valid GitHub Actions workflow
+# to prevent it from running. See sonarcloud.yml.disabled for the
+# full CI-based analysis workflow.
