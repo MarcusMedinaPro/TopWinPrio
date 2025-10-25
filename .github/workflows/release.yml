@@ -1,0 +1,65 @@
+name: 🚀 Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    uses: ./.github/workflows/build-test.yml
+
+  release:
+    needs: build
+    runs-on: windows-latest
+    name: Create GitHub Release
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-bin
+          path: ./release-bin
+
+      - name: Create release packages
+        run: |
+          # Skapa directories
+          New-Item -ItemType Directory -Path "release-packages" -Force
+          
+          # Kopiera Manual.pdf till release directory
+          Copy-Item "Manual.pdf" -Destination "release-bin/Manual.pdf"
+          
+          # Skapa ZIP med installer + manual
+          Compress-Archive -Path "release-bin/*" -DestinationPath "release-packages/TopWinPrio-installer.zip"
+          
+          # Skapa ZIP med bara EXE
+          Compress-Archive -Path "release-bin/*.exe" -DestinationPath "release-packages/TopWinPrio-exe-only.zip"
+          
+          # Kopiera bara EXE filen
+          Copy-Item "release-bin/TopWinPrio.exe" -Destination "release-packages/TopWinPrio.exe"
+          
+          # Lista vad som skapades
+          Get-ChildItem -Path "release-packages" -Recurse
+
+      - name: Generate release checksums
+        run: |
+          cd release-packages
+          Get-FileHash * -Algorithm SHA256 | Select-Object Hash, @{Name="File";Expression={Split-Path $_.Path -Leaf}} | Format-Table -AutoSize | Out-File -FilePath SHA256SUMS.txt -Encoding UTF8
+          Get-Content SHA256SUMS.txt
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release-packages/TopWinPrio-installer.zip
+            release-packages/TopWinPrio-exe-only.zip
+            release-packages/TopWinPrio.exe
+            release-packages/SHA256SUMS.txt
+          generate_release_notes: true
+          draft: false
+          prerelease: false
