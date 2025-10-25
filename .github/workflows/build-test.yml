@@ -58,9 +58,10 @@ jobs:
           Get-FileHash *.exe, *.dll -Algorithm SHA256 | Select-Object Hash, @{Name="File";Expression={Split-Path $_.Path -Leaf}} | Format-Table -AutoSize | Out-File -FilePath SHA256SUMS.txt -Encoding UTF8
           Get-Content SHA256SUMS.txt
 
-      # Phase 2: VirusTotal scanning (now active with API key)
+      # Phase 2: VirusTotal scanning (with error handling)
       - name: VirusTotal Scan
         uses: crazy-max/ghaction-virustotal@v4
+        continue-on-error: true
         with:
           vt_api_key: ${{ secrets.VIRUSTOTAL_API_KEY }}
           files: |
@@ -69,11 +70,21 @@ jobs:
           
       - name: Save VirusTotal Results
         run: |
-          # VirusTotal results are logged in the workflow, but let's create a summary
-          echo "VirusTotal scan completed at: $(Get-Date)" > TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt
-          echo "Files scanned:" >> TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt  
+          # Create VirusTotal summary regardless of scan success
+          echo "VirusTotal scan attempted at: $(Get-Date)" > TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt
+          echo "Files processed:" >> TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt  
           Get-ChildItem TopWinPrio.CS/bin/Release/*.exe, TopWinPrio.CS/bin/Release/*.dll | ForEach-Object { "- $($_.Name)" } >> TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt
-          echo "Check workflow logs for detailed VirusTotal results and scan URLs" >> TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt
+          echo "" >> TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt
+          echo "VirusTotal Status: Check workflow logs for scan results" >> TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt
+          echo "If scan failed, this may be due to:" >> TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt
+          echo "- API key issues (401 Unauthorized)" >> TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt
+          echo "- Rate limiting (429 Too Many Requests)" >> TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt
+          echo "- Network connectivity issues" >> TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt
+          echo "" >> TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt
+          echo "Manual scan instructions:" >> TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt
+          echo "1. Download the release artifacts" >> TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt
+          echo "2. Visit https://www.virustotal.com/gui/home/upload" >> TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt
+          echo "3. Upload TopWinPrio.exe for manual scanning" >> TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt
         continue-on-error: true
 
       - name: Upload Release binaries
