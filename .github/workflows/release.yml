@@ -61,6 +61,7 @@ jobs:
             release-packages/TopWinPrio-exe-only.zip
             release-packages/TopWinPrio.exe
             release-packages/SHA256SUMS.txt
+            release-bin/VirusTotal-Summary.txt
           generate_release_notes: true
           draft: false
           prerelease: false

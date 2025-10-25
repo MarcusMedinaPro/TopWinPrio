@@ -36,16 +36,11 @@ Detta dokument beskriver den nya GitHub Actions pipeline som implementerar den f
 - [x] dotnet test för .NET 4.7.2 test-projekt
 - [x] Artifact upload för Release binaries
 
-### 🚧 Phase 2 - Security/reporting (FÖRBEREDD)
+### ✅ Phase 2 - Security/reporting (ACTIVE!)
 - [x] SHA256SUMS.txt generation
-- [x] Build log capture för StyleCop
-- [ ] VirusTotal scanning (väntar på API key)
-  ```yaml
-  # Uncomment när VIRUSTOTAL_API_KEY secret är konfigurerad
-  - name: VirusTotal Scan
-    if: env.VIRUSTOTAL_API_KEY != ''
-    uses: crazy-max/ghaction-virustotal@v4
-  ```
+- [x] Build log capture för StyleCop  
+- [x] VirusTotal scanning (VIRUSTOTAL_API_KEY configured)
+- [x] VirusTotal summary included in release artifacts
 
 ### ✅ Phase 3 - Automated release packaging (KLAR)
 - [x] Automatisk trigger på v* tags
