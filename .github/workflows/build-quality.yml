@@ -1,45 +1,134 @@
-      - name: 🧯 Scan with Windows Defender
+name: 🧪 Build, Sign & Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  quality-check:
+    name: 🔍 Build, Sign & Scan
+    runs-on: windows-latest
+
+    steps:
+      # 1️⃣ Checkout
+      - name: 🧭 Checkout code
+        uses: actions/checkout@v4
+
+      # 2️⃣ Setup tools
+      - name: 📦 Setup NuGet
+        uses: nuget/setup-nuget@v1
+
+      - name: 🛠️ Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: ⚙️ Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      # 3️⃣ Copy repository to a writable temp directory
+      - name: 🧩 Copy to local temp folder
+        shell: pwsh
+        run: |
+          $temp = "C:\Temp\BuildTest"
+          if (Test-Path $temp) { Remove-Item $temp -Recurse -Force }
+          New-Item -ItemType Directory -Force -Path $temp | Out-Null
+          Copy-Item -Recurse -Force -Path "$env:GITHUB_WORKSPACE\*" -Destination $temp
+          Write-Host "✅ Copied repository to $temp"
+
+      # 4️⃣ Build inside temp folder
+      - name: 🏗️ Build in temp location
+        shell: pwsh
+        run: |
+          cd C:\Temp\BuildTest
+          & "C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\MSBuild.exe" TopWinPrio.sln /t:Build /p:Configuration=Release
+          Write-Host "✅ Build complete in C:\Temp\BuildTest"
+
+      # 5️⃣ Sign executable (Certum SimplySign)
+      - name: 🔏 Code Sign via Certum
+        id: sign
+        shell: pwsh
+        run: |
+          $exePath = "C:\Temp\BuildTest\TopWinPrio.CS\bin\Release\TopWinPrio.exe"
+          $signtool = "C:\Program Files (x86)\Certum\SimplySign Desktop\signtool.exe"
+          $tsa = "${{ secrets.CERTUM_TSA_URL }}"
+          $serial = "${{ secrets.CERTUM_CERT_SN }}"
+          $user = "${{ secrets.CERTUM_LOGIN }}"
+          $pass = "${{ secrets.CERTUM_PASSWORD }}"
+
+          if (Test-Path $exePath -and (Test-Path $signtool)) {
+            Write-Host "🔐 Signing $exePath using Certum Cloud..."
+            & $signtool sign `
+              /tr $tsa `
+              /td sha256 `
+              /fd sha256 `
+              /sha1 $serial `
+              /u $user `
+              /p $pass `
+              $exePath
+
+            if ($LASTEXITCODE -eq 0) {
+              Write-Host "✅ Signing complete."
+              echo "result=Signed" >> $env:GITHUB_OUTPUT
+            } else {
+              Write-Host "⚠️ Signing failed with exit code $LASTEXITCODE."
+              echo "result=Failed($LASTEXITCODE)" >> $env:GITHUB_OUTPUT
+            }
+          } else {
+            Write-Host "⚠️ signtool.exe or EXE file not found. Skipping signing."
+            echo "result=Skipped" >> $env:GITHUB_OUTPUT
+          }
+
+      # 6️⃣ Run tests
+      - name: 🧪 Run tests
+        shell: pwsh
+        run: |
+          cd C:\Temp\BuildTest
+          dotnet test TopWinPrio.Tests/TopWinPrio.Tests.csproj --configuration Release --no-restore --logger trx
+          Write-Host "✅ Tests executed successfully."
+
+      # 7️⃣ Scan with Windows Defender
+      - name: 🧯 Scan signed EXE with Windows Defender
         id: defender
         continue-on-error: true
         shell: pwsh
         run: |
-          $exe = "TopWinPrio.CS\bin\Release\TopWinPrio.exe"
+          $exe = "C:\Temp\BuildTest\TopWinPrio.CS\bin\Release\TopWinPrio.exe"
           $log  = "$env:TEMP\MpCmdRun.log"
           if (Test-Path $log) { Remove-Item $log -Force }
 
-          if (Test-Path $exe) {
-            Write-Host "🧠 Scanning $exe with Windows Defender..."
-            $defender = "C:\Program Files\Windows Defender\MpCmdRun.exe"
-            & $defender -Scan -ScanType 3 -File $exe
-            $exit = $LASTEXITCODE
-            Write-Host "Defender exit code: $exit"
+          Write-Host "🧠 Scanning signed build output with Windows Defender..."
+          $defender = "C:\Program Files\Windows Defender\MpCmdRun.exe"
+          & $defender -Scan -ScanType 3 -File $exe
+          $exit = $LASTEXITCODE
+          Write-Host "Defender exit code: $exit"
 
-            $logContent = if (Test-Path $log) { Get-Content $log | Out-String } else { "No log file created." }
-            Write-Host "=== Defender log start ==="
-            Write-Host $logContent
-            Write-Host "=== Defender log end ==="
+          $logContent = if (Test-Path $log) { Get-Content $log | Out-String } else { "No Defender log found." }
+          Write-Host "=== Defender log start ==="
+          Write-Host $logContent
+          Write-Host "=== Defender log end ==="
 
-            # Treat code 0 (OK) and 2 (AccessDenied/Warning) as pass
-            if ($exit -in 0, 2) {
-              Write-Host "✅ Defender scan passed (code $exit)."
-              echo "result=Clean" >> $env:GITHUB_OUTPUT
-            } else {
-              Write-Host "⚠️ Defender scan failed (code $exit)."
-              echo "result=Error($exit)" >> $env:GITHUB_OUTPUT
-            }
-
-            echo "log=$logContent" >> $env:GITHUB_OUTPUT
+          if ($exit -in 0, 2) {
+            Write-Host "✅ Defender scan passed (code $exit)."
+            echo "result=Clean" >> $env:GITHUB_OUTPUT
           } else {
-            Write-Host "⚠️ No executable found to scan."
-            echo "result=Skipped" >> $env:GITHUB_OUTPUT
-            echo "log=No file to scan." >> $env:GITHUB_OUTPUT
+            Write-Host "⚠️ Defender scan failed (code $exit)."
+            echo "result=Error($exit)" >> $env:GITHUB_OUTPUT
           }
+          echo "log=$logContent" >> $env:GITHUB_OUTPUT
 
-      - name: 🔏 Verify Digital Signature
+      # 8️⃣ Verify digital signature
+      - name: 🔍 Verify Digital Signature
         id: signature
         shell: pwsh
         run: |
-          $exe = "TopWinPrio.CS\bin\Release\TopWinPrio.exe"
+          $exe = "C:\Temp\BuildTest\TopWinPrio.CS\bin\Release\TopWinPrio.exe"
           $signtool = "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe"
           if ((Test-Path $exe) -and (Test-Path $signtool)) {
             Write-Host "🔍 Verifying digital signature..."
@@ -54,4 +143,61 @@
           } else {
             Write-Host "⚠️ No signature tool or file found."
             echo "result=Skipped" >> $env:GITHUB_OUTPUT
+          }
+
+      # 9️⃣ Generate report
+      - name: 🧾 Generate summary report
+        id: report
+        shell: pwsh
+        run: |
+          $report = @()
+          $report += "# 🧪 Build, Sign & Scan Report"
+          $report += ""
+          $report += "## ✅ Build Status"
+          $report += "Built successfully in isolated temp directory (`C:\Temp\BuildTest`)."
+          $report += ""
+          $report += "## 🔏 Code Signing"
+          $report += "Result: **${{ steps.sign.outputs.result }}**"
+          $report += ""
+          $report += "## 🧪 Test Results"
+          $report += "All unit tests executed successfully."
+          $report += ""
+          $report += "## 🛡️ Security Scans"
+          $report += "### 🔹 Windows Defender"
+          $report += "Result: **${{ steps.defender.outputs.result }}**"
+          $report += ""
+          $report += "#### 🧾 Defender Log"
+          $report += "````"
+          $report += "${{ steps.defender.outputs.log }}"
+          $report += "````"
+          $report += ""
+          $report += "### 🔹 Digital Signature"
+          $report += "Result: **${{ steps.signature.outputs.result }}**"
+          $report += ""
+          $report += "## 📋 Code Analysis"
+          $report += "- [SonarCloud Analysis](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/sonarcloud.yml)"
+          $report += ""
+          $report += "_Report generated on $(Get-Date -Format u)_"
+          $text = $report -join "`n"
+          $text | Out-File -FilePath quality-report.md -Encoding UTF8
+          echo "$text" >> $env:GITHUB_STEP_SUMMARY
+
+      # 🔟 Upload the report
+      - name: 📤 Upload Quality Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-report
+          path: quality-report.md
+
+      # 🧹 Clean up everything
+      - name: 🧹 Clean temp folder
+        if: always()
+        shell: pwsh
+        run: |
+          $temp = "C:\Temp\BuildTest"
+          if (Test-Path $temp) {
+            Remove-Item -Recurse -Force $temp
+            Write-Host "🧽 Temp folder cleaned up."
+          } else {
+            Write-Host "Temp folder not found, nothing to clean."
           }
