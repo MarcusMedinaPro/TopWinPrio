@@ -58,33 +58,101 @@ jobs:
           Get-FileHash *.exe, *.dll -Algorithm SHA256 | Select-Object Hash, @{Name="File";Expression={Split-Path $_.Path -Leaf}} | Format-Table -AutoSize | Out-File -FilePath SHA256SUMS.txt -Encoding UTF8
           Get-Content SHA256SUMS.txt
 
-      # Phase 2: VirusTotal scanning (with error handling)
+      # Phase 2: VirusTotal scanning (with enhanced debugging)
+      - name: Verify VirusTotal API Key
+        run: |
+          Write-Host "🔍 VirusTotal API Key Check" -ForegroundColor Cyan
+          if ($env:VIRUSTOTAL_API_KEY) {
+            $keyLength = $env:VIRUSTOTAL_API_KEY.Length
+            $keyStart = $env:VIRUSTOTAL_API_KEY.Substring(0, [Math]::Min(8, $keyLength))
+            Write-Host "✅ API Key available: $keyStart... (length: $keyLength)" -ForegroundColor Green
+          } else {
+            Write-Host "❌ API Key not accessible" -ForegroundColor Red
+          }
+        env:
+          VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
+
       - name: VirusTotal Scan
         uses: crazy-max/ghaction-virustotal@v4
+        id: virustotal
         continue-on-error: true
         with:
           vt_api_key: ${{ secrets.VIRUSTOTAL_API_KEY }}
           files: |
             TopWinPrio.CS/bin/Release/*.exe
             TopWinPrio.CS/bin/Release/*.dll
+          vt_monitor: false
           
       - name: Save VirusTotal Results
         run: |
-          # Create VirusTotal summary regardless of scan success
-          echo "VirusTotal scan attempted at: $(Get-Date)" > TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt
-          echo "Files processed:" >> TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt  
-          Get-ChildItem TopWinPrio.CS/bin/Release/*.exe, TopWinPrio.CS/bin/Release/*.dll | ForEach-Object { "- $($_.Name)" } >> TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt
-          echo "" >> TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt
-          echo "VirusTotal Status: Check workflow logs for scan results" >> TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt
-          echo "If scan failed, this may be due to:" >> TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt
-          echo "- API key issues (401 Unauthorized)" >> TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt
-          echo "- Rate limiting (429 Too Many Requests)" >> TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt
-          echo "- Network connectivity issues" >> TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt
-          echo "" >> TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt
-          echo "Manual scan instructions:" >> TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt
-          echo "1. Download the release artifacts" >> TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt
-          echo "2. Visit https://www.virustotal.com/gui/home/upload" >> TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt
-          echo "3. Upload TopWinPrio.exe for manual scanning" >> TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt
+          Write-Host "📝 Creating VirusTotal Summary" -ForegroundColor Cyan
+          
+          $summary = @"
+VirusTotal Scan Report - $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss UTC')
+================================================================
+
+Files Analyzed:
+"@
+          Get-ChildItem TopWinPrio.CS/bin/Release/*.exe, TopWinPrio.CS/bin/Release/*.dll | ForEach-Object { 
+            $summary += "`n- $($_.Name) ($([math]::Round($_.Length/1KB, 2)) KB)"
+          }
+          
+          $summary += @"
+
+Scan Status: $($env:SCAN_STATUS)
+================================================================
+
+"@
+
+          if ($env:SCAN_STATUS -eq "success") {
+            $summary += @"
+✅ VirusTotal scan completed successfully!
+🔍 Check the workflow logs above for detailed scan results and URLs.
+🔗 Scan results are available on VirusTotal website.
+
+"@
+          } else {
+            $summary += @"
+⚠️  VirusTotal scan encountered issues (this doesn't affect file safety).
+
+Possible causes:
+- API rate limiting (temporary - try again later)
+- API key configuration issues  
+- Network connectivity issues
+- VirusTotal service temporarily unavailable
+
+Manual Verification Steps:
+1. Download the release files
+2. Verify SHA256 checksums (see SHA256SUMS.txt)
+3. Upload TopWinPrio.exe to https://www.virustotal.com/gui/home/upload
+4. Review results from multiple antivirus engines
+
+Expected Results: 0 detections from major engines (unsigned binaries may trigger false positives)
+
+"@
+          }
+
+          $summary += @"
+Build Security Measures:
+✅ Source code publicly auditable on GitHub
+✅ Build process fully automated and transparent  
+✅ SonarCloud security analysis active
+✅ CodeQL vulnerability scanning enabled
+✅ SHA256 checksums for integrity verification
+✅ Registry and P/Invoke security hardening applied
+
+Community Verification:
+Users are encouraged to perform independent scans and share results.
+Report security concerns via GitHub Security Advisories.
+
+================================================================
+Generated by TopWinPrio GitHub Actions Pipeline
+"@
+
+          $summary | Out-File -FilePath "TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt" -Encoding UTF8
+          Write-Host "📄 Summary saved to VirusTotal-Summary.txt" -ForegroundColor Green
+        env:
+          SCAN_STATUS: ${{ steps.virustotal.outcome }}
         continue-on-error: true
 
       - name: Upload Release binaries
