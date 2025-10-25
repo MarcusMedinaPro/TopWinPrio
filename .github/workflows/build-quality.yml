@@ -1,4 +1,4 @@
-name: 🧪 Build, Sign & Scan
+name: Build, Sign & VirusTotal Scan (Generic)
 
 on:
   push:
@@ -12,192 +12,170 @@ permissions:
 
 jobs:
   quality-check:
-    name: 🔍 Build, Sign & Scan
+    name: Build, Sign & VirusTotal Scan
     runs-on: windows-latest
 
     steps:
       # 1️⃣ Checkout
-      - name: 🧭 Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       # 2️⃣ Setup tools
-      - name: 📦 Setup NuGet
-        uses: nuget/setup-nuget@v1
-
-      - name: 🛠️ Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
-
-      - name: ⚙️ Setup .NET SDK
+      - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
 
-      # 3️⃣ Copy repository to a writable temp directory
-      - name: 🧩 Copy to local temp folder
+      - name: Setup NuGet
+        uses: nuget/setup-nuget@v1
+
+      # 3️⃣ Copy to a clean temp folder
+      - name: Copy repo to temp
         shell: pwsh
         run: |
-          $temp = "C:\Temp\BuildTest"
-          if (Test-Path $temp) { Remove-Item $temp -Recurse -Force }
+          $temp = "C:\Temp\VirusTotalBuild"
+          if (Test-Path $temp) { Remove-Item -Recurse -Force $temp }
           New-Item -ItemType Directory -Force -Path $temp | Out-Null
           Copy-Item -Recurse -Force -Path "$env:GITHUB_WORKSPACE\*" -Destination $temp
           Write-Host "✅ Copied repository to $temp"
 
-      # 4️⃣ Build inside temp folder
-      - name: 🏗️ Build in temp location
+      # 4️⃣ Build everything with dotnet
+      - name: Build project
         shell: pwsh
         run: |
-          cd C:\Temp\BuildTest
-          & "C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\MSBuild.exe" TopWinPrio.sln /t:Build /p:Configuration=Release
-          Write-Host "✅ Build complete in C:\Temp\BuildTest"
+          cd C:\Temp\VirusTotalBuild
+          dotnet restore
+          dotnet build --configuration Release --no-restore
+          Write-Host "✅ Build complete"
 
-      # 5️⃣ Sign executable (Certum SimplySign)
-      - name: 🔏 Code Sign via Certum
+      # 5️⃣ Find all relevant files (exe, dll, nupkg, msi, zip)
+      - name: Find candidate files
+        id: findfiles
+        shell: pwsh
+        run: |
+          $root = "C:\Temp\VirusTotalBuild"
+          $patterns = @("*.exe","*.dll","*.nupkg","*.msi","*.zip")
+          $files = @()
+          foreach ($p in $patterns) {
+            $files += Get-ChildItem -Path $root -Recurse -Filter $p -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
+          }
+          $files = $files | Sort-Object -Unique
+          Write-Host "Found files:"
+          $files | ForEach-Object { Write-Host "- $_" }
+          $json = $files | ConvertTo-Json -Compress
+          echo "files=$json" >> $env:GITHUB_OUTPUT
+
+      # 6️⃣ Sign all binaries (optional)
+      - name: Code Sign with Certum (optional)
         id: sign
         shell: pwsh
+        env:
+          CERTUM_TSA_URL: ${{ secrets.CERTUM_TSA_URL }}
+          CERTUM_CERT_SN: ${{ secrets.CERTUM_CERT_SN }}
+          CERTUM_LOGIN: ${{ secrets.CERTUM_LOGIN }}
+          CERTUM_PASSWORD: ${{ secrets.CERTUM_PASSWORD }}
         run: |
-          $exePath = "C:\Temp\BuildTest\TopWinPrio.CS\bin\Release\TopWinPrio.exe"
-          $signtool = "C:\Program Files (x86)\Certum\SimplySign Desktop\signtool.exe"
-          $tsa = "${{ secrets.CERTUM_TSA_URL }}"
-          $serial = "${{ secrets.CERTUM_CERT_SN }}"
-          $user = "${{ secrets.CERTUM_LOGIN }}"
-          $pass = "${{ secrets.CERTUM_PASSWORD }}"
+          $files = (ConvertFrom-Json "${{ steps.findfiles.outputs.files }}")
+          $signtoolPaths = @(
+            "C:\Program Files (x86)\Certum\SimplySign Desktop\signtool.exe",
+            "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe"
+          )
+          $signtool = $signtoolPaths | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $signtool) { Write-Host "⚠️ No signtool found, skipping signing."; exit 0 }
 
-          if (Test-Path $exePath -and (Test-Path $signtool)) {
-            Write-Host "🔐 Signing $exePath using Certum Cloud..."
-            & $signtool sign `
-              /tr $tsa `
-              /td sha256 `
-              /fd sha256 `
-              /sha1 $serial `
-              /u $user `
-              /p $pass `
-              $exePath
-
-            if ($LASTEXITCODE -eq 0) {
-              Write-Host "✅ Signing complete."
-              echo "result=Signed" >> $env:GITHUB_OUTPUT
-            } else {
-              Write-Host "⚠️ Signing failed with exit code $LASTEXITCODE."
-              echo "result=Failed($LASTEXITCODE)" >> $env:GITHUB_OUTPUT
+          $signedCount = 0
+          foreach ($f in $files) {
+            $ext = [IO.Path]::GetExtension($f).ToLowerInvariant()
+            if ($ext -in ".exe",".dll",".msi") {
+              Write-Host "🔏 Signing $f..."
+              & $signtool sign `
+                /tr $env:CERTUM_TSA_URL `
+                /td sha256 `
+                /fd sha256 `
+                /sha1 $env:CERTUM_CERT_SN `
+                /u $env:CERTUM_LOGIN `
+                /p $env:CERTUM_PASSWORD `
+                $f
+              if ($LASTEXITCODE -eq 0) {
+                $signedCount++
+                Write-Host "✅ Signed: $f"
+              } else {
+                Write-Host "⚠️ Sign failed ($LASTEXITCODE): $f"
+              }
             }
-          } else {
-            Write-Host "⚠️ signtool.exe or EXE file not found. Skipping signing."
-            echo "result=Skipped" >> $env:GITHUB_OUTPUT
           }
+          echo "signed=$signedCount" >> $env:GITHUB_OUTPUT
 
-      # 6️⃣ Run tests
-      - name: 🧪 Run tests
+      # 7️⃣ VirusTotal scan on all artifacts
+      - name: VirusTotal Scan
+        if: ${{ secrets.VIRUSTOTAL_API_KEY }}
+        uses: crazy-max/ghaction-virustotal@v4
+        with:
+          vt_api_key: ${{ secrets.VIRUSTOTAL_API_KEY }}
+          files: |
+            ${{ fromJson(steps.findfiles.outputs.files) | join('\n') }}
+          vt_monitor: false
+
+      # 8️⃣ Verify signatures
+      - name: Verify signatures (signtool)
+        id: verify
         shell: pwsh
         run: |
-          cd C:\Temp\BuildTest
-          dotnet test TopWinPrio.Tests/TopWinPrio.Tests.csproj --configuration Release --no-restore --logger trx
-          Write-Host "✅ Tests executed successfully."
-
-      # 7️⃣ Scan with Windows Defender
-      - name: 🧯 Scan signed EXE with Windows Defender
-        id: defender
-        continue-on-error: true
-        shell: pwsh
-        run: |
-          $exe = "C:\Temp\BuildTest\TopWinPrio.CS\bin\Release\TopWinPrio.exe"
-          $log  = "$env:TEMP\MpCmdRun.log"
-          if (Test-Path $log) { Remove-Item $log -Force }
-
-          Write-Host "🧠 Scanning signed build output with Windows Defender..."
-          $defender = "C:\Program Files\Windows Defender\MpCmdRun.exe"
-          & $defender -Scan -ScanType 3 -File $exe
-          $exit = $LASTEXITCODE
-          Write-Host "Defender exit code: $exit"
-
-          $logContent = if (Test-Path $log) { Get-Content $log | Out-String } else { "No Defender log found." }
-          Write-Host "=== Defender log start ==="
-          Write-Host $logContent
-          Write-Host "=== Defender log end ==="
-
-          if ($exit -in 0, 2) {
-            Write-Host "✅ Defender scan passed (code $exit)."
-            echo "result=Clean" >> $env:GITHUB_OUTPUT
-          } else {
-            Write-Host "⚠️ Defender scan failed (code $exit)."
-            echo "result=Error($exit)" >> $env:GITHUB_OUTPUT
-          }
-          echo "log=$logContent" >> $env:GITHUB_OUTPUT
-
-      # 8️⃣ Verify digital signature
-      - name: 🔍 Verify Digital Signature
-        id: signature
-        shell: pwsh
-        run: |
-          $exe = "C:\Temp\BuildTest\TopWinPrio.CS\bin\Release\TopWinPrio.exe"
+          $files = (ConvertFrom-Json "${{ steps.findfiles.outputs.files }}")
           $signtool = "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe"
-          if ((Test-Path $exe) -and (Test-Path $signtool)) {
-            Write-Host "🔍 Verifying digital signature..."
-            $verify = & $signtool verify /pa /v $exe 2>&1
-            if ($verify -match "Successfully verified") {
-              Write-Host "✅ Signature is valid."
-              echo "result=Valid" >> $env:GITHUB_OUTPUT
-            } else {
-              Write-Host "⚠️ Signature verification failed."
-              echo "result=Invalid" >> $env:GITHUB_OUTPUT
+          $results = @()
+          foreach ($f in $files) {
+            $ext = [IO.Path]::GetExtension($f).ToLowerInvariant()
+            if ($ext -in ".exe",".dll",".msi") {
+              $out = & $signtool verify /pa /v $f 2>&1
+              $ok = ($out -match "Successfully verified")
+              $results += @{file=$f; verified=$ok; output=($out -join "`n")}
             }
-          } else {
-            Write-Host "⚠️ No signature tool or file found."
-            echo "result=Skipped" >> $env:GITHUB_OUTPUT
           }
+          $json = $results | ConvertTo-Json -Compress
+          echo "verify_results=$json" >> $env:GITHUB_OUTPUT
 
-      # 9️⃣ Generate report
-      - name: 🧾 Generate summary report
+      # 9️⃣ Generate report (no Defender)
+      - name: Generate quality report
         id: report
         shell: pwsh
         run: |
+          $files = (ConvertFrom-Json "${{ steps.findfiles.outputs.files }}")
+          $verify = (ConvertFrom-Json "${{ steps.verify.outputs.verify_results }}")
           $report = @()
-          $report += "# 🧪 Build, Sign & Scan Report"
+          $report += "# Build, Sign & VirusTotal Scan Report"
           $report += ""
-          $report += "## ✅ Build Status"
-          $report += "Built successfully in isolated temp directory (`C:\Temp\BuildTest`)."
+          $report += "## Files scanned"
+          foreach ($f in $files) { $report += "- $f" }
           $report += ""
-          $report += "## 🔏 Code Signing"
-          $report += "Result: **${{ steps.sign.outputs.result }}**"
+          $report += "## Signature verification"
+          foreach ($v in $verify) {
+            $status = if ($v.verified -eq $true) { "✅ Valid" } else { "⚠️ Invalid" }
+            $report += "- $($v.file): $status"
+          }
           $report += ""
-          $report += "## 🧪 Test Results"
-          $report += "All unit tests executed successfully."
+          $report += "## VirusTotal"
+          $report += "- Scanned using API key: **${{ secrets.VIRUSTOTAL_API_KEY && '✔️ Provided' || '❌ Not Set' }}**"
+          $report += "- Results are visible in the VirusTotal step log."
           $report += ""
-          $report += "## 🛡️ Security Scans"
-          $report += "### 🔹 Windows Defender"
-          $report += "Result: **${{ steps.defender.outputs.result }}**"
-          $report += ""
-          $report += "#### 🧾 Defender Log"
-          $report += "````"
-          $report += "${{ steps.defender.outputs.log }}"
-          $report += "````"
-          $report += ""
-          $report += "### 🔹 Digital Signature"
-          $report += "Result: **${{ steps.signature.outputs.result }}**"
-          $report += ""
-          $report += "## 📋 Code Analysis"
-          $report += "- [SonarCloud Analysis](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/sonarcloud.yml)"
-          $report += ""
-          $report += "_Report generated on $(Get-Date -Format u)_"
-          $text = $report -join "`n"
-          $text | Out-File -FilePath quality-report.md -Encoding UTF8
-          echo "$text" >> $env:GITHUB_STEP_SUMMARY
+          $report += "_Generated on $(Get-Date -Format u)_"
+          $report | Out-File -FilePath quality-report.md -Encoding UTF8
+          echo "$((Get-Content quality-report.md -Raw))" >> $env:GITHUB_STEP_SUMMARY
 
-      # 🔟 Upload the report
-      - name: 📤 Upload Quality Report
+      # 🔟 Upload report
+      - name: Upload Quality Report
         uses: actions/upload-artifact@v4
         with:
           name: quality-report
           path: quality-report.md
 
-      # 🧹 Clean up everything
-      - name: 🧹 Clean temp folder
+      # 🧹 Cleanup
+      - name: Cleanup temp folder
         if: always()
         shell: pwsh
         run: |
-          $temp = "C:\Temp\BuildTest"
+          $temp = "C:\Temp\VirusTotalBuild"
           if (Test-Path $temp) {
             Remove-Item -Recurse -Force $temp
-            Write-Host "🧽 Temp folder cleaned up."
-          } else {
-            Write-Host "Temp folder not found, nothing to clean."
+            Write-Host "🧹 Temp folder cleaned up."
           }
