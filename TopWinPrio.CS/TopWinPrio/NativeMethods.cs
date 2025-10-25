@@ -68,7 +68,7 @@ namespace TopWinPrio
                 const int maxLength = 256;
                 var stringBuilder = new StringBuilder(maxLength);
                 var windowHandle = NativeMethods.GetForegroundWindow();
-                
+
                 if (windowHandle == IntPtr.Zero)
                 {
                     return string.Empty;

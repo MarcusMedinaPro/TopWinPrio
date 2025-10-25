@@ -33,7 +33,7 @@ namespace TopWinPrio
         /// <returns>The <see cref="bool"/>.</returns>
         public static bool IsAutoStartEnabled(string keyName, string assemblyLocation)
         {
-            if (string.IsNullOrWhiteSpace(keyName) || string.IsNullOrWhiteSpace(assemblyLocation))
+            if (string.IsNullOrEmpty(keyName) || string.IsNullOrEmpty(assemblyLocation))
             {
                 return false;
             }
@@ -70,7 +70,7 @@ namespace TopWinPrio
         /// <param name="assemblyLocation">The assemblyLocation <see cref="string"/>.</param>
         public static void SetAutoStart(string keyName, string assemblyLocation)
         {
-            if (string.IsNullOrWhiteSpace(keyName) || string.IsNullOrWhiteSpace(assemblyLocation))
+            if (string.IsNullOrEmpty(keyName) || string.IsNullOrEmpty(assemblyLocation))
             {
                 throw new ArgumentException("Key name and assembly location cannot be null or empty.");
             }
@@ -79,7 +79,10 @@ namespace TopWinPrio
             {
                 using (var registryKey = Registry.CurrentUser.CreateSubKey(HKCVRUNLOCATION))
                 {
-                    registryKey?.SetValue(keyName, assemblyLocation);
+                    if (registryKey != null)
+                    {
+                        registryKey.SetValue(keyName, assemblyLocation);
+                    }
                 }
             }
             catch (System.Security.SecurityException ex)
@@ -98,16 +101,16 @@ namespace TopWinPrio
         /// <param name="keyName">The keyName <see cref="string"/>.</param>
         public static void RemoveAutoStart(string keyName)
         {
-            if (string.IsNullOrWhiteSpace(keyName))
+            if (string.IsNullOrEmpty(keyName))
             {
-                throw new ArgumentException("Key name cannot be null or empty.", nameof(keyName));
+                throw new ArgumentException("Key name cannot be null or empty.", "keyName");
             }
 
             try
             {
                 using (var registryKey = Registry.CurrentUser.CreateSubKey(HKCVRUNLOCATION))
                 {
-                    if (registryKey?.GetValue(keyName) != null)
+                    if (registryKey != null && registryKey.GetValue(keyName) != null)
                     {
                         registryKey.DeleteValue(keyName, false); // false = don't throw if key doesn't exist
                     }
