@@ -4,10 +4,10 @@ Simple, focused migration plan: One .NET version at a time, release, repeat.
 
 ---
 
-## Current Status: 🚢 Shipping Unsigned Compatibility Builds
+## Current Status: 🚧 CI Simplification In Progress
 
-**Blocker**: Certum signing pipeline not yet ready for GitHub-hosted runners
-**Action**: Publish unsigned (but VirusTotal-scanned) releases plus SHA256 manifests until the .NET 8 upgrade
+**Blocker**: GitHub-hosted Windows runners can’t reliably provision .NET 3.5 targeting packs or run the full release pipeline
+**Action**: Keep releases unsigned and pause VirusTotal/checksum automation until the simplified build/test workflow is stable
 **Current Version**: v1.x (.NET Framework 3.5)
 
 ---
@@ -18,7 +18,7 @@ Simple, focused migration plan: One .NET version at a time, release, repeat.
 1. Upgrade .NET version
 2. Fix compilation/runtime issues
 3. Manual QA testing
-4. Build/test/virus-scan in CI
+4. Build/test in CI (VirusTotal/checksum steps re-enable after stabilization)
 5. Push code
 6. Create git tag → triggers release
 7. Re-enable signing starting with the .NET 8 phase
@@ -39,8 +39,7 @@ Simple, focused migration plan: One .NET version at a time, release, repeat.
 **Tag Pattern**: `v1.x-net35`
 
 **Before next migration:**
-- [x] Document unsigned/VirusTotal posture in README
-- [x] Publish SHA256 checksum manifest with every release
+- [ ] Re-enable VirusTotal + checksum automation once CI is stable
 - [ ] Collect feedback on legacy compatibility build
 
 ---
@@ -176,12 +175,12 @@ git push origin v2.0-net48
 
 ### Must Complete Before Migration
 - [x] .NET 3.5 builds successfully
-- [x] CI/CD pipeline works
-- [x] Quality pipeline fixed (dotnet test)
-- [x] Virus scan + release automation for unsigned compatibility builds
+- [x] CI pipeline builds/tests on GitHub Actions
+- [ ] Virus scan + checksum automation restored for unsigned compatibility builds
 - [ ] Certum code signing re-enabled for .NET 8+
 
 ### Ready to Resume Signing When
+- VirusTotal/checksum automation is back online
 - Certum certificate can be used non-interactively or via the self-hosted runner
 - The `.NET 8` (v4.x) migration is ready to tag
 

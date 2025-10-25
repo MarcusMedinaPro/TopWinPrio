@@ -83,16 +83,7 @@ Current production build targets **.NET Framework 3.5** (Win32).
 
 ## Downloads
 
-Releases are created automatically whenever a tag matching `v*` is pushed. Each release currently publishes:
-
-- `TopWinPrio-release.zip` – zipped Release output (EXE, config, resources) for installers or manual deployment.
-- `TopWinPrio-exe-only.zip` – zip containing only the WinForms executable for quick copies.
-- `TopWinPrio.exe` – standalone executable artifact for rapid verification.
-- `SHA256SUMS.txt` – checksum manifest for every file attached to the release.
-
-> 🔐 **Trust note:** Until the .NET 8 upgrade restores Certum signing, releases remain unsigned. Each tag build still runs on GitHub Actions, executes `dotnet test`, uploads artifacts, and performs a VirusTotal scan before the release is created so you can verify provenance.
-
-Browse the latest packages on the [Releases page](https://github.com/MarcusMedina/TopWinPrio/releases).
+Releases are published manually while the workflow is simplified for troubleshooting. Expect the usual payloads (`TopWinPrio-release.zip`, `TopWinPrio-exe-only.zip`, `TopWinPrio.exe`) when a tag is promoted, but automation for checksum manifests and VirusTotal scans is temporarily paused. Grab the latest drop from the [Releases page](https://github.com/MarcusMedina/TopWinPrio/releases) or build from source.
 
 ## Quick Start
 
@@ -109,7 +100,7 @@ The legacy project lives in `TopWinPrio.CS/TopWinPrio.csproj`.
 msbuild TopWinPrio.sln /t:Build /p:Configuration=Release
 ```
 
-The GitHub Action in `.github/workflows/build-test-scan-quality.yml` mirrors this process on a Windows runner, restoring NuGet packages, compiling Debug/Release, running the VirusTotal check, and publishing artifacts; when a tag is pushed the same workflow also creates the GitHub Release and attaches the packaged assets automatically.
+The GitHub Action in `.github/workflows/build-test.yml` currently mirrors just the restore/build/test cycle on a Windows runner. As the pipeline stabilizes we’ll reintroduce the VirusTotal scan, checksum generation, and automated release packaging in separate steps.
 
 ### Local Development Tips
 
@@ -119,9 +110,9 @@ The GitHub Action in `.github/workflows/build-test-scan-quality.yml` mirrors thi
 
 ## Roadmap
 
-**Current Status**: 🚢 Shipping unsigned (VirusTotal-scanned) compatibility builds until signing resumes with the .NET 8 upgrade.
+**Current Status**: 🚧 Simplified CI (build/test only) while we stabilize Windows runner dependencies; releases remain unsigned and virus scanning/checksum automation is paused until it’s reliable again.
 
-**Migration Strategy**: One .NET version at a time; defer Certum signing until the `.NET 8 (v4.x)` phase (checksums + VirusTotal coverage continue meanwhile).
+**Migration Strategy**: One .NET version at a time; defer Certum signing until the `.NET 8 (v4.x)` phase and re-enable VirusTotal/checksums once the workflow is healthy.
 
 | Phase | Framework | Status | Release Tag |
 |-------|-----------|--------|-------------|
@@ -137,9 +128,9 @@ The GitHub Action in `.github/workflows/build-test-scan-quality.yml` mirrors thi
 
 ## Verify Downloads
 
-- **Checksums:** Every release ships with `SHA256SUMS.txt`. On Windows you can run `Get-FileHash .\TopWinPrio.exe -Algorithm SHA256` and compare with the manifest entry; on macOS/Linux use `shasum -a 256 file`.
-- **VirusTotal:** The `🧪 Build Test & Scan Quality` workflow uploads the built binaries to VirusTotal automatically. Check the workflow logs or release notes for run IDs if you want to cross-reference the scan.
-- **Code signing roadmap:** Starting with the `.NET 8 (v4.x)` release, all executables and installers will be signed with the Certum certificate again. Until then, rely on the published checksums plus the VirusTotal scan history for authenticity.
+- **Checksums:** Until automation returns, generate your own hash after download (`Get-FileHash .\TopWinPrio.exe -Algorithm SHA256` on Windows, `shasum -a 256 file` elsewhere). Future releases will reintroduce a pre-made `SHA256SUMS.txt`.
+- **VirusTotal:** The previous workflow uploaded binaries automatically; that step is paused while CI is simplified. You can upload the EXE/ZIP manually to [VirusTotal](https://www.virustotal.com/) if you need additional assurance today.
+- **Code signing roadmap:** Starting with the `.NET 8 (v4.x)` release, all executables and installers will be signed with the Certum certificate. Until then, rely on manual hash verification and VirusTotal checks for authenticity.
 
 ## Contributing
 

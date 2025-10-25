@@ -120,6 +120,13 @@
     <Analyzer Include="..\packages\StyleCop.Analyzers.1.1.118\analyzers\dotnet\cs\StyleCop.Analyzers.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\packages\Microsoft.ReferenceAssemblies.net35.1.0.3\build\Microsoft.ReferenceAssemblies.net35.targets" Condition="Exists('..\packages\Microsoft.ReferenceAssemblies.net35.1.0.3\build\Microsoft.ReferenceAssemblies.net35.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them. For more information, see https://aka.ms/nugetrequired. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\Microsoft.ReferenceAssemblies.net35.1.0.3\build\Microsoft.ReferenceAssemblies.net35.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.ReferenceAssemblies.net35.1.0.3\build\Microsoft.ReferenceAssemblies.net35.targets'))" />
+  </Target>
   <PropertyGroup>
     <PreBuildEvent />
     <PostBuildEvent />
