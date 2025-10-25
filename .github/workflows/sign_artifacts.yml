@@ -1,0 +1,98 @@
+name: 🔏 Sign Artifacts (Local Runner)
+
+# Signing enabled for .NET 4.8+
+env:
+  ENABLE_CODE_SIGN: "true"
+
+on:
+  workflow_run:
+    workflows: ["🧪 Build & Test"]
+    types: [completed]
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  sign:
+    if: >
+      env.ENABLE_CODE_SIGN == 'true' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      (startsWith(github.event.workflow_run.head_branch, 'main') || startsWith(github.event.workflow_run.head_branch, 'v'))
+    name: Sign artifacts on self-hosted runner
+    runs-on: [self-hosted, windows, code-sign]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download unsigned build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-bin
+          path: unsigned
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Prepare output folder
+        shell: pwsh
+        run: New-Item -ItemType Directory -Force -Path signed | Out-Null
+
+      - name: Sign all executables and DLLs
+        shell: pwsh
+        env:
+          CERTUM_TSA_URL: http://time.certum.pl
+          CERTUM_CERT_NAME: "Open Source Developer, Marcus Ackre Medina"
+        run: |
+          $signtool = "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe"
+          $tsa = $env:CERTUM_TSA_URL
+          $certName = $env:CERTUM_CERT_NAME
+
+          # Verify signtool exists
+          if (-not (Test-Path $signtool)) {
+              Write-Host "❌ signtool.exe not found at: $signtool" -ForegroundColor Red
+              Write-Host "Please install Windows SDK" -ForegroundColor Yellow
+              exit 1
+          }
+
+          # Find files to sign
+          $files = Get-ChildItem -Path unsigned -Recurse -Include *.exe, *.dll
+
+          if ($files.Count -eq 0) {
+              Write-Host "⚠️  No files found to sign" -ForegroundColor Yellow
+              exit 0
+          }
+
+          Write-Host "Found $($files.Count) file(s) to sign" -ForegroundColor Cyan
+
+          $signedCount = 0
+          $failedCount = 0
+
+          foreach ($f in $files) {
+              Write-Host "🔏 Signing: $($f.Name)..." -ForegroundColor Cyan
+              & $signtool sign /n $certName /fd SHA256 /tr $tsa /td SHA256 /v "$($f.FullName)" 2>&1 | Out-String | Write-Host
+
+              if ($LASTEXITCODE -eq 0) {
+                  Copy-Item $f.FullName "signed\" -Force
+                  Write-Host "✅ Signed: $($f.Name)" -ForegroundColor Green
+                  $signedCount++
+              } else {
+                  Write-Host "❌ Failed to sign: $($f.Name)" -ForegroundColor Red
+                  $failedCount++
+              }
+          }
+
+          Write-Host "`nSigning Summary:" -ForegroundColor Cyan
+          Write-Host "✅ Successfully signed: $signedCount" -ForegroundColor Green
+          Write-Host "❌ Failed: $failedCount" -ForegroundColor Red
+
+          if ($failedCount -gt 0) {
+              exit 1
+          }
+
+      - name: Upload signed artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: signed-release-bin
+          path: signed/
+          retention-days: 90
