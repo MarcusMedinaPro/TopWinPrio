@@ -56,13 +56,12 @@ jobs:
           if (Test-Path $exe) {
             Write-Host "🧠 Scanning $exe with Windows Defender..."
             $defender = "C:\Program Files\Windows Defender\MpCmdRun.exe"
-            $result = & $defender -Scan -ScanType 3 -File $exe
-            $exit = $LASTEXITCODE
-            if ($exit -eq 0) {
+            & $defender -Scan -ScanType 3 -File $exe
+            if ($LASTEXITCODE -eq 0) {
               Write-Host "✅ Defender scan passed."
               echo "result=Clean" >> $env:GITHUB_OUTPUT
             } else {
-              Write-Host "⚠️ Defender scan found potential issue (exit code: $exit)"
+              Write-Host "⚠️ Defender scan found potential issue (exit code: $LASTEXITCODE)"
               echo "result=Warning" >> $env:GITHUB_OUTPUT
             }
           } else {
@@ -71,8 +70,10 @@ jobs:
           }
 
       - name: 🧬 VirusTotal Scan (optional)
-        if: ${{ secrets.VIRUSTOTAL_API_KEY != '' }}
         id: virustotal
+        env:
+          VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
+        if: ${{ env.VIRUSTOTAL_API_KEY }}
         uses: crazy-max/ghaction-virustotal@v4
         with:
           vt_api_key: ${{ secrets.VIRUSTOTAL_API_KEY }}
@@ -80,9 +81,34 @@ jobs:
           fail_on_detected: false
 
       # -----------------------------
-      # 3️⃣ Generate report
+      # 3️⃣ Signature Verification
+      # -----------------------------
+      - name: 🔏 Verify Digital Signature
+        id: signature
+        shell: pwsh
+        run: |
+          $exe = "TopWinPrio.CS\bin\Release\TopWinPrio.exe"
+          $signtool = "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe"
+          if (Test-Path $exe -and Test-Path $signtool) {
+            Write-Host "🔍 Verifying digital signature..."
+            $verify = & $signtool verify /pa /v $exe 2>&1
+            if ($verify -match "Successfully verified") {
+              Write-Host "✅ Signature is valid."
+              echo "result=Valid" >> $env:GITHUB_OUTPUT
+            } else {
+              Write-Host "⚠️ Signature verification failed."
+              echo "result=Invalid" >> $env:GITHUB_OUTPUT
+            }
+          } else {
+            Write-Host "⚠️ No signature tool or file found."
+            echo "result=Skipped" >> $env:GITHUB_OUTPUT
+          }
+
+      # -----------------------------
+      # 4️⃣ Generate & Display Report
       # -----------------------------
       - name: 🧾 Generate summary report
+        id: report
         shell: pwsh
         run: |
           $report = @()
@@ -99,22 +125,27 @@ jobs:
           $report += "### 🔹 Windows Defender"
           $report += "Result: **${{ steps.defender.outputs.result }}**"
           $report += ""
-          if ("${{ steps.virustotal.outcome }}" -ne "") {
+          if ('${{ steps.virustotal.outcome }}' -ne '') {
             $report += "### 🔹 VirusTotal"
             $report += "Result: **${{ steps.virustotal.outcome }}**"
-            $report += "Report: [View Scan on VirusTotal](${{ steps.virustotal.outputs.permalink }})"
+            $report += "Report: [View on VirusTotal](${{ steps.virustotal.outputs.permalink }})"
             $report += ""
           } else {
             $report += "### 🔹 VirusTotal"
             $report += "Result: *(skipped — no API key configured)*"
             $report += ""
           }
+          $report += "### 🔹 Digital Signature"
+          $report += "Result: **${{ steps.signature.outputs.result }}**"
+          $report += ""
           $report += "## 📋 Code Analysis"
           $report += "See full analysis in:"
           $report += "- [SonarCloud Analysis](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/sonarcloud.yml)"
           $report += ""
           $report += "_Report generated on $(Get-Date -Format u)_"
-          $report | Out-File -FilePath quality-report.md -Encoding UTF8
+          $text = $report -join "`n"
+          $text | Out-File -FilePath quality-report.md -Encoding UTF8
+          echo "$text" >> $env:GITHUB_STEP_SUMMARY
 
       - name: 📤 Upload Quality Report
         uses: actions/upload-artifact@v4
