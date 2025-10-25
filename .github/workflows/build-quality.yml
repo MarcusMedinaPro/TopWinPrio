@@ -50,23 +50,45 @@ jobs:
 
       - name: 🧯 Scan with Windows Defender
         id: defender
+        continue-on-error: true
         shell: pwsh
         run: |
           $exe = "TopWinPrio.CS\bin\Release\TopWinPrio.exe"
+          $log  = "$env:TEMP\MpCmdRun.log"
+          if (Test-Path $log) { Remove-Item $log -Force }
+
           if (Test-Path $exe) {
             Write-Host "🧠 Scanning $exe with Windows Defender..."
             $defender = "C:\Program Files\Windows Defender\MpCmdRun.exe"
             & $defender -Scan -ScanType 3 -File $exe
-            if ($LASTEXITCODE -eq 0) {
-              Write-Host "✅ Defender scan passed."
-              echo "result=Clean" >> $env:GITHUB_OUTPUT
+            $exit = $LASTEXITCODE
+            Write-Host "Defender exit code: $exit"
+
+            $logContent = ""
+            if (Test-Path $log) {
+              Write-Host "=== Defender log start ==="
+              $logContent = Get-Content $log | Out-String
+              Write-Host $logContent
+              Write-Host "=== Defender log end ==="
             } else {
-              Write-Host "⚠️ Defender scan found potential issue (exit code: $LASTEXITCODE)"
-              echo "result=Warning" >> $env:GITHUB_OUTPUT
+              Write-Host "⚠️ No Defender log found at $log"
+              $logContent = "No Defender log found."
+            }
+
+            if ($exit -eq 0) {
+              echo "result=Clean" >> $env:GITHUB_OUTPUT
+              echo "log=$logContent" >> $env:GITHUB_OUTPUT
+            } elseif ($exit -eq 2) {
+              echo "result=ThreatDetectedOrAccessDenied" >> $env:GITHUB_OUTPUT
+              echo "log=$logContent" >> $env:GITHUB_OUTPUT
+            } else {
+              echo "result=Error($exit)" >> $env:GITHUB_OUTPUT
+              echo "log=$logContent" >> $env:GITHUB_OUTPUT
             }
           } else {
             Write-Host "⚠️ No executable found to scan."
             echo "result=Skipped" >> $env:GITHUB_OUTPUT
+            echo "log=No file to scan." >> $env:GITHUB_OUTPUT
           }
 
       - name: 🧬 VirusTotal Scan (optional)
@@ -124,6 +146,12 @@ jobs:
           $report += ""
           $report += "### 🔹 Windows Defender"
           $report += "Result: **${{ steps.defender.outputs.result }}**"
+          $report += ""
+          $report += "#### 🧾 Defender Log"
+          $log = @'${{ steps.defender.outputs.log }}'@
+          $report += "````"
+          $report += $log
+          $report += "````"
           $report += ""
           if ('${{ steps.virustotal.outcome }}' -ne '') {
             $report += "### 🔹 VirusTotal"
