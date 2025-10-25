@@ -22,7 +22,7 @@ Detta dokument beskriver den nya GitHub Actions pipeline som implementerar den f
 **Syfte:** Skapa GitHub release med alla nödvändiga artifacts
 
 **Skapar följande paket:**
-- `TopWinPrio-installer.zip` - Komplett paket med EXE + Manual.pdf
+- `TopWinPrio-release.zip` - Komplett paket med EXE + Manual.pdf (följer MIGRATION_ROADMAP konvention)
 - `TopWinPrio-exe-only.zip` - Bara EXE-filen
 - `TopWinPrio.exe` - Ren EXE-fil
 - `SHA256SUMS.txt` - Checksummor för alla filer
@@ -87,7 +87,8 @@ git push origin v1.2.3  # Triggar build, test & release
 
 ### .NET 3.5 Build Issues
 - **Problem:** `MSB3644: The reference assemblies for .NETFramework,Version=v3.5 were not found`
-- **Lösning:** Använd MSBuild istället för dotnet build, NuGet package `Microsoft.ReferenceAssemblies.net35` hanterar referenser
+- **Lösning:** Använd MSBuild istället för dotnet build, NuGet package `Microsoft.NETFramework.ReferenceAssemblies.net35` hanterar referenser
+- **Fix Applied:** Korrigerat paketnamn från `Microsoft.ReferenceAssemblies.net35` → `Microsoft.NETFramework.ReferenceAssemblies.net35`
 
 ### Test Issues
 - **Problem:** Tests körs inte

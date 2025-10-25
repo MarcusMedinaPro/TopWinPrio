@@ -35,12 +35,16 @@ Simple, focused migration plan: One .NET version at a time, release, repeat.
 ## Migration Phases
 
 ### Phase 1: ✅ .NET Framework 3.5 (Current - v1.x)
-**Status**: Complete – unsigned compatibility release published
+**Status**: In Progress – preparing v1.0-net35 release (previous 1.0.1-net35 will be removed)
 **Tag Pattern**: `v1.x-net35`
 
 **Before next migration:**
-- [ ] Re-enable VirusTotal + checksum automation once CI is stable
-- [ ] Collect feedback on legacy compatibility build
+- [x] Fix GitHub Actions build for .NET 3.5 (MSBuild vs dotnet build)
+- [x] Create automated release workflow
+- [x] Generate SHA256 checksums
+- [ ] Re-enable VirusTotal + checksum automation once CI is stable  
+- [ ] Collect feedback on compatibility build
+- [ ] Tag v1.0-net35 to replace v1.0.1-net35
 
 ---
 

@@ -34,11 +34,11 @@ jobs:
           # Kopiera Manual.pdf till release directory
           Copy-Item "Manual.pdf" -Destination "release-bin/Manual.pdf"
           
-          # Skapa ZIP med installer + manual
-          Compress-Archive -Path "release-bin/*" -DestinationPath "release-packages/TopWinPrio-installer.zip"
+          # Skapa ZIP med installer + manual (följer MIGRATION_ROADMAP namnkonvention)
+          Compress-Archive -Path "release-bin/*" -DestinationPath "release-packages/TopWinPrio-release.zip"
           
           # Skapa ZIP med bara EXE
-          Compress-Archive -Path "release-bin/*.exe" -DestinationPath "release-packages/TopWinPrio-exe-only.zip"
+          Compress-Archive -Path "release-bin/*.exe" -DestinationPath "release-packages/TopWinPrio-exe-only.zip" 
           
           # Kopiera bara EXE filen
           Copy-Item "release-bin/TopWinPrio.exe" -Destination "release-packages/TopWinPrio.exe"
@@ -56,7 +56,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            release-packages/TopWinPrio-installer.zip
+            release-packages/TopWinPrio-release.zip
             release-packages/TopWinPrio-exe-only.zip
             release-packages/TopWinPrio.exe
             release-packages/SHA256SUMS.txt
