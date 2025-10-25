@@ -7,7 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2025-10-25
+
+### Changed - .NET Framework 4.8 Migration
+- **BREAKING**: Migrated from .NET Framework 3.5 to .NET Framework 4.8
+- Updated `app.config` to target .NET 4.0 runtime (fixes silent crash on startup)
+- Modernized C# syntax to leverage .NET 4.8 features:
+  - String interpolation (`$"text {variable}"`)
+  - Null-conditional operators (`?.`)
+  - Pattern matching with `is` expressions
+  - Inline `out` variable declarations
+  - `nameof()` operator for parameter names
+- Updated mutex name from "LunaWorX TopWinPrio" to "MarcusMedinaPro TopWinPrio"
+- Removed unnecessary `NativeMethods` class qualifier prefixes
+- Removed empty static constructor from `NativeMethods`
+- Simplified `Dispose` method with null-conditional operator
+- Modernized registry operations with pattern matching
+
 ### Added
+- Comprehensive global exception handling in `Program.Main`:
+  - `Application.ThreadException` handler
+  - `AppDomain.UnhandledException` handler
+  - User-friendly error MessageBox dialogs
+- "Already running" notification when second instance is detected
 - SonarCloud Automatic Analysis integration for continuous code quality monitoring
 - Quality Gate, Bugs, Code Smells, Security, and Maintainability badges in README
 - SONARCLOUD_SETUP.md documentation for SonarCloud configuration
@@ -25,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved code maintainability and readability in MainForm.cs
 
 ### Fixed
+- **CRITICAL**: Fixed silent crash on startup caused by `app.config` targeting .NET 2.0 runtime
 - Critical null reference bug in MainForm.cs (L1087) that could cause NullReferenceException
 - Uncommented necessary null check for `processData1` to prevent crashes
 - Removed commented dead code that was causing code smell warnings
@@ -32,6 +55,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - Added SonarCloud security analysis to detect vulnerabilities
 - Configured security rating monitoring through badges
+
+### Runtime Requirements
+- Requires .NET Framework 4.8 (included in Windows 10 1903+ and Windows 11)
+- No longer supports Windows XP/Vista (use v1.x for legacy OS support)
 
 ## [1.0.0] - 2025-01-18
 
