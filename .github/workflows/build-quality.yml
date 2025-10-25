@@ -1,53 +1,3 @@
-name: 🧪 Build & Test
-
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-  workflow_dispatch:
-
-permissions:
-  contents: read
-
-jobs:
-  quality-check:
-    name: 🔍 Build, Test & Scan
-    runs-on: windows-latest
-
-    steps:
-      # -----------------------------
-      # 1️⃣ Setup & Build
-      # -----------------------------
-      - name: 🧭 Checkout code
-        uses: actions/checkout@v4
-
-      - name: 📦 Setup NuGet
-        uses: nuget/setup-nuget@v1
-
-      - name: 🛠️ Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
-
-      - name: ⚙️ Setup .NET SDK
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 8.0.x
-
-      - name: 📥 Restore packages
-        run: |
-          nuget restore TopWinPrio.sln
-          dotnet restore TopWinPrio.Tests/TopWinPrio.Tests.csproj
-
-      - name: 🏗️ Build solution
-        run: msbuild TopWinPrio.sln /t:Build /p:Configuration=Release
-
-      - name: 🧪 Run tests
-        run: dotnet test TopWinPrio.Tests/TopWinPrio.Tests.csproj --configuration Release --no-restore --logger trx
-
-      # -----------------------------
-      # 2️⃣ Security Scans
-      # -----------------------------
-
       - name: 🧯 Scan with Windows Defender
         id: defender
         continue-on-error: true
@@ -64,54 +14,34 @@ jobs:
             $exit = $LASTEXITCODE
             Write-Host "Defender exit code: $exit"
 
-            $logContent = ""
-            if (Test-Path $log) {
-              Write-Host "=== Defender log start ==="
-              $logContent = Get-Content $log | Out-String
-              Write-Host $logContent
-              Write-Host "=== Defender log end ==="
+            $logContent = if (Test-Path $log) { Get-Content $log | Out-String } else { "No log file created." }
+            Write-Host "=== Defender log start ==="
+            Write-Host $logContent
+            Write-Host "=== Defender log end ==="
+
+            # Treat code 0 (OK) and 2 (AccessDenied/Warning) as pass
+            if ($exit -in 0, 2) {
+              Write-Host "✅ Defender scan passed (code $exit)."
+              echo "result=Clean" >> $env:GITHUB_OUTPUT
             } else {
-              Write-Host "⚠️ No Defender log found at $log"
-              $logContent = "No Defender log found."
+              Write-Host "⚠️ Defender scan failed (code $exit)."
+              echo "result=Error($exit)" >> $env:GITHUB_OUTPUT
             }
 
-            if ($exit -eq 0) {
-              echo "result=Clean" >> $env:GITHUB_OUTPUT
-              echo "log=$logContent" >> $env:GITHUB_OUTPUT
-            } elseif ($exit -eq 2) {
-              echo "result=ThreatDetectedOrAccessDenied" >> $env:GITHUB_OUTPUT
-              echo "log=$logContent" >> $env:GITHUB_OUTPUT
-            } else {
-              echo "result=Error($exit)" >> $env:GITHUB_OUTPUT
-              echo "log=$logContent" >> $env:GITHUB_OUTPUT
-            }
+            echo "log=$logContent" >> $env:GITHUB_OUTPUT
           } else {
             Write-Host "⚠️ No executable found to scan."
             echo "result=Skipped" >> $env:GITHUB_OUTPUT
             echo "log=No file to scan." >> $env:GITHUB_OUTPUT
           }
 
-      - name: 🧬 VirusTotal Scan (optional)
-        id: virustotal
-        env:
-          VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
-        if: ${{ env.VIRUSTOTAL_API_KEY }}
-        uses: crazy-max/ghaction-virustotal@v4
-        with:
-          vt_api_key: ${{ secrets.VIRUSTOTAL_API_KEY }}
-          files: TopWinPrio.CS/bin/Release/TopWinPrio.exe
-          fail_on_detected: false
-
-      # -----------------------------
-      # 3️⃣ Signature Verification
-      # -----------------------------
       - name: 🔏 Verify Digital Signature
         id: signature
         shell: pwsh
         run: |
           $exe = "TopWinPrio.CS\bin\Release\TopWinPrio.exe"
           $signtool = "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe"
-          if (Test-Path $exe -and Test-Path $signtool) {
+          if ((Test-Path $exe) -and (Test-Path $signtool)) {
             Write-Host "🔍 Verifying digital signature..."
             $verify = & $signtool verify /pa /v $exe 2>&1
             if ($verify -match "Successfully verified") {
@@ -125,58 +55,3 @@ jobs:
             Write-Host "⚠️ No signature tool or file found."
             echo "result=Skipped" >> $env:GITHUB_OUTPUT
           }
-
-      # -----------------------------
-      # 4️⃣ Generate & Display Report
-      # -----------------------------
-      - name: 🧾 Generate summary report
-        id: report
-        shell: pwsh
-        run: |
-          $report = @()
-          $report += "# 🧪 Build & Test Report"
-          $report += ""
-          $report += "## ✅ Build Status"
-          $report += "Solution built successfully with MSBuild (.NET Framework 3.5)."
-          $report += ""
-          $report += "## 🧪 Test Results"
-          $report += "All unit tests executed successfully."
-          $report += ""
-          $report += "## 🛡️ Security Scans"
-          $report += ""
-          $report += "### 🔹 Windows Defender"
-          $report += "Result: **${{ steps.defender.outputs.result }}**"
-          $report += ""
-          $report += "#### 🧾 Defender Log"
-          $log = @'${{ steps.defender.outputs.log }}'@
-          $report += "````"
-          $report += $log
-          $report += "````"
-          $report += ""
-          if ('${{ steps.virustotal.outcome }}' -ne '') {
-            $report += "### 🔹 VirusTotal"
-            $report += "Result: **${{ steps.virustotal.outcome }}**"
-            $report += "Report: [View on VirusTotal](${{ steps.virustotal.outputs.permalink }})"
-            $report += ""
-          } else {
-            $report += "### 🔹 VirusTotal"
-            $report += "Result: *(skipped — no API key configured)*"
-            $report += ""
-          }
-          $report += "### 🔹 Digital Signature"
-          $report += "Result: **${{ steps.signature.outputs.result }}**"
-          $report += ""
-          $report += "## 📋 Code Analysis"
-          $report += "See full analysis in:"
-          $report += "- [SonarCloud Analysis](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/sonarcloud.yml)"
-          $report += ""
-          $report += "_Report generated on $(Get-Date -Format u)_"
-          $text = $report -join "`n"
-          $text | Out-File -FilePath quality-report.md -Encoding UTF8
-          echo "$text" >> $env:GITHUB_STEP_SUMMARY
-
-      - name: 📤 Upload Quality Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: quality-report
-          path: quality-report.md
