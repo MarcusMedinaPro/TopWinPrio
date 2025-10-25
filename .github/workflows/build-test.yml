@@ -58,15 +58,15 @@ jobs:
           Get-FileHash *.exe, *.dll -Algorithm SHA256 | Select-Object Hash, @{Name="File";Expression={Split-Path $_.Path -Leaf}} | Format-Table -AutoSize | Out-File -FilePath SHA256SUMS.txt -Encoding UTF8
           Get-Content SHA256SUMS.txt
 
-      # Phase 2: VirusTotal scanning placeholder (uncomment when API key available)
-      # - name: VirusTotal Scan
-      #   if: env.VIRUSTOTAL_API_KEY != ''
-      #   uses: crazy-max/ghaction-virustotal@v4
-      #   with:
-      #     vt_api_key: ${{ secrets.VIRUSTOTAL_API_KEY }}
-      #     files: |
-      #       TopWinPrio.CS/bin/Release/*.exe
-      #       TopWinPrio.CS/bin/Release/*.dll
+      # Phase 2: VirusTotal scanning
+      - name: VirusTotal Scan
+        if: ${{ secrets.VIRUSTOTAL_API_KEY != '' }}
+        uses: crazy-max/ghaction-virustotal@v4
+        with:
+          vt_api_key: ${{ secrets.VIRUSTOTAL_API_KEY }}
+          files: |
+            TopWinPrio.CS/bin/Release/*.exe
+            TopWinPrio.CS/bin/Release/*.dll
 
       - name: Upload Release binaries
         uses: actions/upload-artifact@v4

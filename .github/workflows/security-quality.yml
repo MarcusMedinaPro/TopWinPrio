@@ -1,0 +1,138 @@
+name: 🔒 Security & Quality Reports
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 2 * * 1'  # Weekly Monday 2 AM
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  security-analysis:
+    name: Security Analysis
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Restore packages
+        run: nuget restore TopWinPrio.sln
+
+      - name: Build for analysis
+        run: msbuild TopWinPrio.sln /p:Configuration=Release /m
+
+      # CodeQL Analysis for security vulnerabilities
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: csharp
+          queries: security-extended,security-and-quality
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+      # Enhanced StyleCop & Code Analysis
+      - name: Run Enhanced Code Analysis
+        run: |
+          # StyleCop + Code Analysis with detailed reporting
+          msbuild TopWinPrio.sln /p:Configuration=Release /p:RunCodeAnalysis=true /p:TreatWarningsAsErrors=false /flp1:logfile=StyleCop-Report.log;verbosity=diagnostic /flp2:logfile=CodeAnalysis-Report.log;verbosity=normal
+          
+          # Generate XML reports for parsing
+          msbuild TopWinPrio.sln /p:Configuration=Release /p:RunCodeAnalysis=true /logger:"XMLLogger,Microsoft.Build.Engine;StyleCop-Results.xml"
+        continue-on-error: true
+
+      # Dependency vulnerability scanning
+      - name: Dependency Vulnerability Scan
+        run: |
+          # Check for known vulnerable packages
+          dotnet list TopWinPrio.Tests/TopWinPrio.Tests.csproj package --vulnerable --include-transitive > vulnerability-report.txt 2>&1 || true
+          
+          # NuGet audit (if available)
+          nuget audit TopWinPrio.CS/packages.config > nuget-audit.txt 2>&1 || echo "NuGet audit not available" > nuget-audit.txt
+        continue-on-error: true
+
+      # License compliance check  
+      - name: License Compliance Check
+        run: |
+          dotnet list TopWinPrio.Tests/TopWinPrio.Tests.csproj package --include-transitive > license-report.txt 2>&1 || true
+        continue-on-error: true
+
+      # Upload all security reports
+      - name: Upload Security Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            StyleCop-Report.log
+            CodeAnalysis-Report.log  
+            StyleCop-Results.xml
+            vulnerability-report.txt
+            nuget-audit.txt
+            license-report.txt
+
+  quality-metrics:
+    name: Quality Metrics
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      # Code metrics and complexity analysis
+      - name: Calculate Code Metrics
+        run: |
+          # Lines of code count
+          Get-ChildItem -Recurse -Include "*.cs" | Where-Object { $_.FullName -notlike "*\bin\*" -and $_.FullName -notlike "*\obj\*" } | ForEach-Object {
+              $content = Get-Content $_.FullName
+              "$($_.Name): $($content.Length) lines"
+          } | Out-File -FilePath code-metrics.txt
+          
+          # File count summary  
+          $csFiles = (Get-ChildItem -Recurse -Include "*.cs" | Where-Object { $_.FullName -notlike "*\bin\*" -and $_.FullName -notlike "*\obj\*" }).Count
+          "Total C# files: $csFiles" | Add-Content code-metrics.txt
+          
+          Get-Content code-metrics.txt
+
+      # Documentation coverage
+      - name: Documentation Analysis
+        run: |
+          # Check for XML documentation
+          Get-ChildItem -Recurse -Include "*.cs" | Where-Object { $_.FullName -notlike "*\bin\*" } | ForEach-Object {
+              $content = Get-Content $_.FullName -Raw
+              $xmlDocCount = ([regex]::Matches($content, "///")).Count
+              $publicMethodCount = ([regex]::Matches($content, "public.*\s+\w+\s*\(")).Count
+              "$($_.Name): $xmlDocCount XML docs, $publicMethodCount public methods"
+          } | Out-File -FilePath documentation-report.txt
+          
+          Get-Content documentation-report.txt
+
+      - name: Upload Quality Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: quality-reports
+          path: |
+            code-metrics.txt
+            documentation-report.txt
