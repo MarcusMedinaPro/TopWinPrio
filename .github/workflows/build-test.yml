@@ -3,12 +3,12 @@ name: 🧪 Build & Test
 on:
   push:
     branches:
-      - net3.5
+      - main
     tags:
       - "v*"
   pull_request:
     branches:
-      - net3.5
+      - main
   workflow_dispatch:
   workflow_call:
 
