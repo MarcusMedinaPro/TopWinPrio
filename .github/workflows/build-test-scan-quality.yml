@@ -76,20 +76,37 @@ jobs:
           }) { exit 0 }
 
           $urls = @(
-              "https://download.visualstudio.microsoft.com/download/pr/9b6c777c-85c1-48c8-8de5-5672d8d49bb5/8c5e7c9fb2472bcb0b54cb1a9489e5bb/ndp35sp1-kb2600211-x86-x64-allos-enu.exe",
-              "https://github.com/marcusmedinapro/resources/releases/download/runtime/ndp35sp1.exe"
+              "https://download.microsoft.com/download/0/6/2/0628426B-D40B-4F90-90DF-1850526DF421/dotnetfx35.exe",
+              "https://download.microsoft.com/download/9/8/0/980E0C59-07BA-439B-9AB3-B68A3A7CC35C/dotnetfx35.exe"
           )
 
           foreach ($url in $urls) {
               if (Invoke-Step "Installing via offline package from $url" {
-                  $installer = Join-Path $env:TEMP "ndp35sp1.exe"
-                  Invoke-WebRequest -Uri $url -OutFile $installer -UseBasicParsing -TimeoutSec 180
-                  Start-Process -FilePath $installer -ArgumentList "/quiet","/norestart" -Wait
+                  $installer = Join-Path $env:TEMP "dotnetfx35.exe"
+                  Invoke-WebRequest -Uri $url -OutFile $installer -UseBasicParsing -TimeoutSec 300 -Headers @{ "User-Agent" = "Mozilla/5.0 (GitHubActions)" }
+                  Start-Process -FilePath $installer -ArgumentList "/passive","/norestart" -Wait
                   if ($LASTEXITCODE -ne 0) {
                       throw "Installer exited with code $LASTEXITCODE"
                   }
               }) { exit 0 }
           }
+
+          if (Invoke-Step "Installing VS Build Tools component Microsoft.Net.Component.3.5.DeveloperTools..." {
+              $vsInstaller = Join-Path $env:TEMP "vs_buildtools.exe"
+              Invoke-WebRequest -Uri "https://aka.ms/vs/17/release/vs_buildtools.exe" -OutFile $vsInstaller -UseBasicParsing -TimeoutSec 300
+              $args = @(
+                  "--quiet",
+                  "--wait",
+                  "--norestart",
+                  "--nocache",
+                  "--installPath", "C:\BuildTools",
+                  "--add", "Microsoft.Net.Component.3.5.DeveloperTools"
+              )
+              Start-Process -FilePath $vsInstaller -ArgumentList $args -Wait
+              if ($LASTEXITCODE -ne 0) {
+                  throw "VS Build Tools installer exited with code $LASTEXITCODE"
+              }
+          }) { exit 0 }
 
           throw "Unable to provision .NET Framework 3.5 Developer Pack on this runner."
 
