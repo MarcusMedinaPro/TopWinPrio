@@ -302,9 +302,9 @@ namespace TopWinPrio
         /// <param name="disposing">The disposing <see cref="bool"/></param>
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
+            if (disposing)
             {
-                components.Dispose();
+                components?.Dispose();
             }
 
             base.Dispose(disposing);
@@ -465,7 +465,7 @@ namespace TopWinPrio
         private void HsbTimer_Scroll(object sender, ScrollEventArgs e)
         {
             var i = timerSlider.Value;
-            refreshLabel.Text = "Refresh every " + i.ToString(System.Globalization.CultureInfo.CurrentCulture) + " secs";
+            refreshLabel.Text = $"Refresh every {i} secs";
             timerTopWindowCheck.Interval = i * 1000;
         }
 
@@ -1152,11 +1152,9 @@ namespace TopWinPrio
             var timestamp = DateTime.Now;
             var listItem = new ListViewItem(timestamp.ToShortTimeString());
 
-            var windowTitle = NativeMethods.GetTopWindowText;
-            if (string.IsNullOrEmpty(windowTitle))
-            {
-                windowTitle = process.ProcessName;
-            }
+            var windowTitle = string.IsNullOrEmpty(NativeMethods.GetTopWindowText)
+                ? process.ProcessName
+                : NativeMethods.GetTopWindowText;
 
             listItem.SubItems.Add(windowTitle);
             logList.Items.Insert(0, listItem);

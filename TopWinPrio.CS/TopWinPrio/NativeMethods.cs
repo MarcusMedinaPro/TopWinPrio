@@ -21,16 +21,9 @@ namespace TopWinPrio
     internal static class NativeMethods
     {
         /// <summary>
-        /// Initializes static members of the <see cref="NativeMethods"/> class.
-        /// </summary>
-        static NativeMethods()
-        {
-        }
-
-        /// <summary>
         /// Gets the GetTopWindowHandle.
         /// </summary>
-        public static int GetTopWindowHandle => (int)NativeMethods.GetForegroundWindow();
+        public static int GetTopWindowHandle => (int)GetForegroundWindow();
 
         /// <summary>
         /// Gets the GetTopWindowProcessID.
@@ -67,7 +60,7 @@ namespace TopWinPrio
             {
                 const int maxLength = 256;
                 var stringBuilder = new StringBuilder(maxLength);
-                var windowHandle = NativeMethods.GetForegroundWindow();
+                var windowHandle = GetForegroundWindow();
 
                 if (windowHandle == IntPtr.Zero)
                 {
@@ -76,7 +69,7 @@ namespace TopWinPrio
 
                 try
                 {
-                    var result = NativeMethods.GetWindowText(windowHandle, stringBuilder, maxLength);
+                    var result = GetWindowText(windowHandle, stringBuilder, maxLength);
                     return result > 0 ? stringBuilder.ToString() : string.Empty;
                 }
                 catch (System.ComponentModel.Win32Exception)

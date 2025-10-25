@@ -42,13 +42,8 @@ namespace TopWinPrio
             {
                 using (var registryKey = Registry.CurrentUser.OpenSubKey(HKCVRUNLOCATION))
                 {
-                    if (registryKey == null)
-                    {
-                        return false;
-                    }
-
-                    var s = registryKey.GetValue(keyName) as string;
-                    return s != null && s.Equals(assemblyLocation, StringComparison.OrdinalIgnoreCase);
+                    return registryKey?.GetValue(keyName) is string value &&
+                           value.Equals(assemblyLocation, StringComparison.OrdinalIgnoreCase);
                 }
             }
             catch (System.Security.SecurityException)
@@ -79,10 +74,7 @@ namespace TopWinPrio
             {
                 using (var registryKey = Registry.CurrentUser.CreateSubKey(HKCVRUNLOCATION))
                 {
-                    if (registryKey != null)
-                    {
-                        registryKey.SetValue(keyName, assemblyLocation);
-                    }
+                    registryKey?.SetValue(keyName, assemblyLocation);
                 }
             }
             catch (System.Security.SecurityException ex)
@@ -103,14 +95,14 @@ namespace TopWinPrio
         {
             if (string.IsNullOrEmpty(keyName))
             {
-                throw new ArgumentException("Key name cannot be null or empty.", "keyName");
+                throw new ArgumentException("Key name cannot be null or empty.", nameof(keyName));
             }
 
             try
             {
                 using (var registryKey = Registry.CurrentUser.CreateSubKey(HKCVRUNLOCATION))
                 {
-                    if (registryKey != null && registryKey.GetValue(keyName) != null)
+                    if (registryKey?.GetValue(keyName) != null)
                     {
                         registryKey.DeleteValue(keyName, false); // false = don't throw if key doesn't exist
                     }

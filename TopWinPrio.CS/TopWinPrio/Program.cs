@@ -33,20 +33,39 @@ namespace TopWinPrio
         [STAThread]
         public static void Main()
         {
-#pragma warning disable IDE0059 // Value assigned to symbol is never used
-            var flag = true;
-#pragma warning restore IDE0059 // Value assigned to symbol is never used
-            using (var mutex = new Mutex(true, "LunaWorX TopWinPrio", out flag))
+            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+            Application.ThreadException += (sender, e) =>
             {
-                if (flag)
+                System.Windows.Forms.MessageBox.Show($"Thread Exception: {e.Exception.Message}\n\n{e.Exception.StackTrace}", "TopWinPrio Error", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
+            };
+            AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+            {
+                var ex = e.ExceptionObject as Exception;
+                System.Windows.Forms.MessageBox.Show($"Unhandled Exception: {ex?.Message}\n\n{ex?.StackTrace}", "TopWinPrio Error", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
+            };
+
+            try
+            {
+                using (var mutex = new Mutex(true, "MarcusMedinaPro TopWinPrio", out bool isNewInstance))
                 {
-                    Application.EnableVisualStyles();
-                    Application.SetCompatibleTextRenderingDefault(false);
-                    using (var frmPrio = new MainForm { Visible = false })
+                    if (isNewInstance)
                     {
-                        Application.Run(frmPrio);
+                        Application.EnableVisualStyles();
+                        Application.SetCompatibleTextRenderingDefault(false);
+                        using (var frmPrio = new MainForm { Visible = false })
+                        {
+                            Application.Run(frmPrio);
+                        }
+                    }
+                    else
+                    {
+                        System.Windows.Forms.MessageBox.Show("TopWinPrio is already running.", "TopWinPrio", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Information);
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.Forms.MessageBox.Show($"Fatal error: {ex.Message}\n\nStack trace:\n{ex.StackTrace}", "TopWinPrio Error", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
             }
         }
     }
