@@ -30,7 +30,9 @@
 
 > Smart priority manager for Windows processes — lightweight, reliable, and open source.
 >
-> 📦 Download the latest installer: [**TopWinPrio Releases**](https://github.com/MarcusMedina/TopWinPrio/rele)
+> 📦 Download the latest installer: [**TopWinPrio Releases**](https://github.com/MarcusMedina/TopWinPrio/releases/latest)
+>
+> ⚠️ Until the .NET 8 migration lands, releases are **unsigned** but every artifact is built on GitHub Actions and scanned via VirusTotal (`🧪 Build Test & Scan Quality` workflow) before being published.
 
 
 
@@ -86,6 +88,9 @@ Releases are created automatically whenever a tag matching `v*` is pushed. Each 
 - `TopWinPrio-release.zip` – zipped Release output (EXE, config, resources) for installers or manual deployment.
 - `TopWinPrio-exe-only.zip` – zip containing only the WinForms executable for quick copies.
 - `TopWinPrio.exe` – standalone executable artifact for rapid verification.
+- `SHA256SUMS.txt` – checksum manifest for every file attached to the release.
+
+> 🔐 **Trust note:** Until the .NET 8 upgrade restores Certum signing, releases remain unsigned. Each tag build still runs on GitHub Actions, executes `dotnet test`, uploads artifacts, and performs a VirusTotal scan before the release is created so you can verify provenance.
 
 Browse the latest packages on the [Releases page](https://github.com/MarcusMedina/TopWinPrio/releases).
 
@@ -104,7 +109,7 @@ The legacy project lives in `TopWinPrio.CS/TopWinPrio.csproj`.
 msbuild TopWinPrio.sln /t:Build /p:Configuration=Release
 ```
 
-The GitHub Action in `.github/workflows/build-legacy.yml` mirrors this process on a Windows runner, restoring NuGet packages, compiling Debug/Release, and publishing artifacts; when a tag is pushed the workflow also creates the GitHub Release and attaches the packaged assets automatically.
+The GitHub Action in `.github/workflows/build-test-scan-quality.yml` mirrors this process on a Windows runner, restoring NuGet packages, compiling Debug/Release, running the VirusTotal check, and publishing artifacts; when a tag is pushed the same workflow also creates the GitHub Release and attaches the packaged assets automatically.
 
 ### Local Development Tips
 
@@ -114,21 +119,27 @@ The GitHub Action in `.github/workflows/build-legacy.yml` mirrors this process o
 
 ## Roadmap
 
-**Current Status**: ⏸️ Paused - Waiting for Certum code signing approval
+**Current Status**: 🚢 Shipping unsigned (VirusTotal-scanned) compatibility builds until signing resumes with the .NET 8 upgrade.
 
-**Migration Strategy**: One .NET version at a time, sign with Certum, release, repeat.
+**Migration Strategy**: One .NET version at a time; defer Certum signing until the `.NET 8 (v4.x)` phase (checksums + VirusTotal coverage continue meanwhile).
 
 | Phase | Framework | Status | Release Tag |
 |-------|-----------|--------|-------------|
-| 1️⃣ Legacy | .NET Framework 3.5 | ✅ Complete (waiting for signing) | `v1.x-net35` |
+| 1️⃣ Legacy | .NET Framework 3.5 | ✅ Released (unsigned) | `v1.x-net35` |
 | 2️⃣ Modernization | .NET Framework 4.8 | ⏸️ Ready to start | `v2.x-net48` |
 | 3️⃣ Cross-platform prep | .NET 6 | 📋 Planned | `v3.x-net6` |
-| 4️⃣ Latest runtime | .NET 8 | 📋 Planned | `v4.x-net8` |
+| 4️⃣ Latest runtime | .NET 8 | 📋 Planned (signing resumes) | `v4.x-net8` |
 | 5️⃣ Next-gen UI | MAUI/WinUI + Service | 🔮 Future (after v4.x) | `v5.x` |
 
 **Migration Focus**: Only framework upgrades until .NET 8. No feature work until v4.x is released.
 
 📖 **Full details**: See [MIGRATION_ROADMAP.md](MIGRATION_ROADMAP.md) for complete migration plan and checklist.
+
+## Verify Downloads
+
+- **Checksums:** Every release ships with `SHA256SUMS.txt`. On Windows you can run `Get-FileHash .\TopWinPrio.exe -Algorithm SHA256` and compare with the manifest entry; on macOS/Linux use `shasum -a 256 file`.
+- **VirusTotal:** The `🧪 Build Test & Scan Quality` workflow uploads the built binaries to VirusTotal automatically. Check the workflow logs or release notes for run IDs if you want to cross-reference the scan.
+- **Code signing roadmap:** Starting with the `.NET 8 (v4.x)` release, all executables and installers will be signed with the Certum certificate again. Until then, rely on the published checksums plus the VirusTotal scan history for authenticity.
 
 ## Contributing
 

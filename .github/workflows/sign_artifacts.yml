@@ -1,5 +1,9 @@
 name: 🔏 Sign Artifacts (Local Runner)
 
+# Temporarily paused: signing re-enables once the .NET 8 release is ready.
+env:
+  ENABLE_CODE_SIGN: "false"
+
 on:
   workflow_run:
     workflows: ["🧪 Build Test & Scan Quality"]
@@ -7,14 +11,15 @@ on:
 
 permissions:
   contents: write
+  actions: read
 
 jobs:
   sign:
     if: >
-      ${{
-        github.event.workflow_run.conclusion == 'success' &&
-        startsWith(github.event.workflow_run.head_branch || '', 'v')
-      }}
+      env.ENABLE_CODE_SIGN == 'true' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      contains(github.event.workflow_run.head_branch || '', 'net8')
     name: Sign artifacts on self-hosted runner
     runs-on: [self-hosted, windows, code-sign]
 

@@ -4,10 +4,10 @@ Simple, focused migration plan: One .NET version at a time, release, repeat.
 
 ---
 
-## Current Status: ⏸️ Waiting for Certum Code Signing
+## Current Status: 🚢 Shipping Unsigned Compatibility Builds
 
-**Blocker**: Code signing certificate approval
-**Action**: No migrations until signing is ready
+**Blocker**: Certum signing pipeline not yet ready for GitHub-hosted runners
+**Action**: Publish unsigned (but VirusTotal-scanned) releases plus SHA256 manifests until the .NET 8 upgrade
 **Current Version**: v1.x (.NET Framework 3.5)
 
 ---
@@ -18,10 +18,11 @@ Simple, focused migration plan: One .NET version at a time, release, repeat.
 1. Upgrade .NET version
 2. Fix compilation/runtime issues
 3. Manual QA testing
-4. **Sign with Certum** 🔒
+4. Build/test/virus-scan in CI
 5. Push code
 6. Create git tag → triggers release
-7. Move to next version
+7. Re-enable signing starting with the .NET 8 phase
+8. Move to next version
 
 ### No Feature Work Until .NET 8
 - **Only** framework upgrades
@@ -34,13 +35,13 @@ Simple, focused migration plan: One .NET version at a time, release, repeat.
 ## Migration Phases
 
 ### Phase 1: ✅ .NET Framework 3.5 (Current - v1.x)
-**Status**: Complete, waiting for Certum signing
+**Status**: Complete – unsigned compatibility release published
 **Tag Pattern**: `v1.x-net35`
 
 **Before next migration:**
-- [ ] Certum code signing approved
-- [ ] Sign existing v1.x release
-- [ ] Verify signing works in CI/CD
+- [x] Document unsigned/VirusTotal posture in README
+- [x] Publish SHA256 checksum manifest with every release
+- [ ] Collect feedback on legacy compatibility build
 
 ---
 
@@ -48,13 +49,12 @@ Simple, focused migration plan: One .NET version at a time, release, repeat.
 **Tag Pattern**: `v2.x-net48`
 **Target Date**: After Certum approval
 
-**Tasks:**
+**Tasks (until .NET 8):**
 - [ ] Update `TargetFramework` in `.csproj` to `net48`
 - [ ] Update `packages.config` dependencies
 - [ ] Build and test locally
 - [ ] Update CI/CD workflow (if needed)
 - [ ] Manual QA: Windows 10/11 testing
-- [ ] Sign release with Certum
 - [ ] Tag: `v2.0-net48` → triggers release
 - [ ] Update README runtime requirements
 
@@ -80,7 +80,6 @@ Simple, focused migration plan: One .NET version at a time, release, repeat.
 - [ ] Build and test locally
 - [ ] Update CI/CD to use .NET 6 SDK
 - [ ] Manual QA testing
-- [ ] Sign release with Certum
 - [ ] Tag: `v3.0-net6` → triggers release
 - [ ] Update README
 
@@ -102,7 +101,7 @@ Simple, focused migration plan: One .NET version at a time, release, repeat.
 - [ ] Fix any breaking changes
 - [ ] Update CI/CD to use .NET 8 SDK
 - [ ] Manual QA testing
-- [ ] Sign release with Certum
+- [ ] Re-enable Certum signing in CI + manual pipeline
 - [ ] Tag: `v4.0-net8` → triggers release
 - [ ] Update README
 
@@ -114,7 +113,7 @@ Simple, focused migration plan: One .NET version at a time, release, repeat.
 
 ---
 
-## Post-.NET 8: Feature Work Begins 🚀
+## Post-.NET 8: Feature Work Begins 🚀 (Signing resumes here)
 
 **After v4.x (.NET 8) is released**, we can start:
 
@@ -156,11 +155,11 @@ git push origin v2.0-net48
 
 ## Code Signing with Certum
 
-**Critical**: All releases must be signed before tagging.
+**Paused**: Signing is deferred until the .NET 8 migration lands. Until then, releases remain unsigned but are scanned in CI (VirusTotal) before publishing.
 
 ### Workflow
 1. Build release locally or in CI
-2. Sign with Certum certificate
+2. (Deferred) Sign with Certum certificate – resumes at Phase 4
 3. Verify signature: `signtool verify /pa TopWinPrio.exe`
 4. Test signed binary
 5. Create git tag
@@ -179,11 +178,12 @@ git push origin v2.0-net48
 - [x] .NET 3.5 builds successfully
 - [x] CI/CD pipeline works
 - [x] Quality pipeline fixed (dotnet test)
-- [ ] **Certum code signing approved** ⏸️
-- [ ] Signing integrated into CI/CD
+- [x] Virus scan + release automation for unsigned compatibility builds
+- [ ] Certum code signing re-enabled for .NET 8+
 
-### Ready to Start When
-Certum certificate received and tested.
+### Ready to Resume Signing When
+- Certum certificate can be used non-interactively or via the self-hosted runner
+- The `.NET 8` (v4.x) migration is ready to tag
 
 ---
 
