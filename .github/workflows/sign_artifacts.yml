@@ -10,6 +10,11 @@ permissions:
 
 jobs:
   sign:
+    if: >
+      ${{
+        github.event.workflow_run.conclusion == 'success' &&
+        startsWith(github.event.workflow_run.head_branch || '', 'v')
+      }}
     name: Sign artifacts on self-hosted runner
     runs-on: [self-hosted, windows, code-sign]
 
@@ -22,6 +27,7 @@ jobs:
         with:
           name: unsigned-artifacts
           path: unsigned
+          run-id: ${{ github.event.workflow_run.id }}
 
       - name: Prepare output folder
         shell: pwsh

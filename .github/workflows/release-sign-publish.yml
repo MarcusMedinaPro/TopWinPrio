@@ -1,19 +1,20 @@
 name: 🚀 Release: Sign & Publish
 
 on:
-  push:
-    tags:
-      - "v*"
   workflow_run:
     workflows: ["🔏 Sign Artifacts (Local Runner)"]
     types: [completed]
-  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
   release:
+    if: >
+      ${{
+        github.event.workflow_run.conclusion == 'success' &&
+        startsWith(github.event.workflow_run.head_branch || '', 'v')
+      }}
     runs-on: ubuntu-latest
     name: Create GitHub Release with signed artifacts
     steps:
@@ -25,6 +26,7 @@ jobs:
         with:
           name: signed-artifacts
           path: dist
+          run-id: ${{ github.event.workflow_run.id }}
 
       - name: Prepare upload folder
         run: |
@@ -35,5 +37,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: uploads/*
+          tag_name: ${{ github.event.workflow_run.head_branch }}
+          name: ${{ github.event.workflow_run.head_branch }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
