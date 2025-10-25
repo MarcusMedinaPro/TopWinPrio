@@ -21,15 +21,42 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 🧩 Install .NET Framework 3.5 Developer Pack
+      - name: 🧩 Ensure .NET Framework 3.5 Developer Pack
         shell: pwsh
         run: |
-          Write-Host "Installing .NET Framework 3.5 Developer Pack..."
-          $url = "https://download.visualstudio.microsoft.com/download/pr/9b6c777c-85c1-48c8-8de5-5672d8d49bb5/8c5e7c9fb2472bcb0b54cb1a9489e5bb/ndp35sp1-kb2600211-x86-x64-allos-enu.exe"
-          $installer = "$env:TEMP\ndp35sp1.exe"
-          Invoke-WebRequest -Uri $url -OutFile $installer
-          Start-Process -FilePath $installer -ArgumentList "/quiet", "/norestart" -Wait
-          Write-Host ".NET Framework 3.5 Developer Pack installed successfully."
+          Write-Host "Installing or enabling .NET Framework 3.5..."
+          $ErrorActionPreference = "Continue"
+          $installed = Get-WindowsFeature -Name NET-Framework-Core -ErrorAction SilentlyContinue
+          if ($installed -and $installed.Installed) {
+              Write-Host ".NET Framework 3.5 already installed."
+              exit 0
+          }
+
+          try {
+              Write-Host "Attempting DISM-based installation..."
+              Start-Process dism -ArgumentList "/online", "/enable-feature", "/featurename:NetFx3", "/All", "/NoRestart" -Wait -ErrorAction Stop
+              Write-Host "✅ Installed via DISM."
+          }
+          catch {
+              Write-Warning "DISM method failed. Trying offline installer..."
+              $urls = @(
+                  "https://download.visualstudio.microsoft.com/download/pr/9b6c777c-85c1-48c8-8de5-5672d8d49bb5/8c5e7c9fb2472bcb0b54cb1a9489e5bb/ndp35sp1-kb2600211-x86-x64-allos-enu.exe",
+                  "https://github.com/marcusmedinapro/resources/releases/download/runtime/ndp35sp1.exe"
+              )
+              foreach ($url in $urls) {
+                  try {
+                      $installer = "$env:TEMP\ndp35sp1.exe"
+                      Write-Host "Downloading from $url..."
+                      Invoke-WebRequest -Uri $url -OutFile $installer -UseBasicParsing -TimeoutSec 90
+                      Start-Process -FilePath $installer -ArgumentList "/quiet", "/norestart" -Wait
+                      Write-Host "✅ Installed from $url"
+                      break
+                  }
+                  catch {
+                      Write-Warning "Failed to download from $url — trying next source."
+                  }
+              }
+          }
 
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
