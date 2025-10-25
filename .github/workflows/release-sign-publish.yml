@@ -1,71 +1,39 @@
-name: Release Sign and Publish
+name: Build Test and Scan
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  release:
-    name: Sign, Scan and Publish Release
-    runs-on: self-hosted   # 👈 Use your local runner with SimplySign Desktop
+  quality-check:
+    runs-on: windows-latest
+    name: Build, Test and Virus Scan
     env:
       HAS_VT_KEY: ${{ secrets.VIRUSTOTAL_API_KEY != '' }}
 
     steps:
-      - name: 🧭 Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: 🛠️ Setup .NET SDK
+      - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
 
-      - name: 🧱 Build and Test
+      - name: Restore and build
         run: |
           dotnet restore
           dotnet build --configuration Release --no-restore
-          dotnet test --configuration Release --no-build --logger trx
 
-      - name: 🔍 Find release files
-        id: findfiles
-        shell: pwsh
-        run: |
-          $patterns = @("*.exe","*.dll","*.msi","*.nupkg","*.zip")
-          $files = @()
-          foreach ($p in $patterns) {
-            $files += Get-ChildItem -Recurse -Filter $p | Select-Object -ExpandProperty FullName
-          }
-          $json = $files | ConvertTo-Json -Compress
-          echo "files=$json" >> $env:GITHUB_OUTPUT
+      - name: Run unit tests
+        run: dotnet test --configuration Release --no-build --logger trx
 
-      - name: 🔏 Code Sign via SimplySign Desktop
-        shell: pwsh
-        run: |
-          $signtool = "C:\Program Files\Certum\SimplySign Desktop\signtool.exe"
-          $tsa = "http://time.certum.pl"
-          $files = (ConvertFrom-Json "${{ steps.findfiles.outputs.files }}")
-          foreach ($f in $files) {
-            if ($f -match '\.exe$|\.dll$|\.msi$') {
-              Write-Host "Signing: $f"
-              & $signtool sign /tr $tsa /td sha256 /fd sha256 $f
-            }
-          }
-
-      - name: ✅ Verify signatures
-        shell: pwsh
-        run: |
-          $signtool = "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe"
-          Get-ChildItem -Recurse -Include *.exe,*.dll,*.msi | ForEach-Object {
-            Write-Host "Verifying: $($_.FullName)"
-            & $signtool verify /pa /v $_.FullName
-          }
-
-      - name: 🧠 VirusTotal Scan
+      - name: VirusTotal Scan
         if: env.HAS_VT_KEY == 'true'
         uses: crazy-max/ghaction-virustotal@v4
         with:
@@ -76,40 +44,28 @@ jobs:
             **/*.nupkg
           vt_monitor: false
 
-      - name: 📦 Collect release files
+      - name: Generate quality report
         shell: pwsh
         run: |
-          mkdir uploads
-          Get-ChildItem -Recurse -Include *.exe,*.dll,*.msi,*.nupkg,*.zip |
-            Copy-Item -Destination uploads -Force
+          $report = @()
+          $report += "# 🧪 Build & Test Report"
+          $report += ""
+          $report += "✅ Build: Passed"
+          $report += "✅ Tests: Executed"
 
-      - name: 📜 Download previous quality report
-        id: fetch-report
-        uses: dawidd6/action-download-artifact@v6
-        with:
-          workflow: build-test-scan.yml
-          name: quality-report
-          path: dist
-        continue-on-error: true
-
-      - name: 🧾 Prepare release notes
-        id: notes
-        shell: pwsh
-        run: |
-          $file = "dist/quality-report.md"
-          if (Test-Path $file) {
-            $body = Get-Content $file -Raw
+          if ($env:HAS_VT_KEY -eq "true") {
+            $report += "🧠 VirusTotal: Scanned"
           } else {
-            $body = "# Release Notes`n`nNo quality report found.`nGenerated on $(Get-Date -Format u)"
+            $report += "🧠 VirusTotal: Skipped (no API key)"
           }
-          echo "body<<EOF" >> $env:GITHUB_OUTPUT
-          echo $body >> $env:GITHUB_OUTPUT
-          echo "EOF" >> $env:GITHUB_OUTPUT
 
-      - name: 🚀 Create GitHub Release
-        uses: softprops/action-gh-release@v2
+          $report += ""
+          $report += "_Generated on $(Get-Date -Format u)_"
+          $report | Out-File quality-report.md -Encoding UTF8
+          Get-Content quality-report.md | Write-Host
+
+      - name: Upload Quality Report
+        uses: actions/upload-artifact@v4
         with:
-          files: uploads/*
-          body: ${{ steps.notes.outputs.body }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: quality-report
+          path: quality-report.md
