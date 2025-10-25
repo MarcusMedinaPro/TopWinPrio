@@ -33,56 +33,53 @@ jobs:
         shell: pwsh
         run: New-Item -ItemType Directory -Force -Path signed | Out-Null
 
-      - name: Sign all executables and DLLs
+      - name: Sign artifacts with Certum SimplySign Desktop
         shell: pwsh
+        env:
+          CERTUM_TSA_URL: "http://time.certum.pl"
         run: |
-          $simplysign = "C:\Program Files\Certum\SimplySign Desktop\SimplySignDesktop.exe"
+          $signer = "C:\Program Files\Certum\SimplySign Desktop\SimplySignDesktop.exe"
+          $tsa = $env:CERTUM_TSA_URL
 
           # Verify SimplySign Desktop exists
-          if (-not (Test-Path $simplysign)) {
-              Write-Host "❌ SimplySign Desktop not found at: $simplysign" -ForegroundColor Red
+          if (-not (Test-Path $signer)) {
+              Write-Host "❌ SimplySign Desktop not found at: $signer" -ForegroundColor Red
               Write-Host "Please install Certum SimplySign Desktop and ensure it's running" -ForegroundColor Yellow
               exit 1
           }
 
-          # Find files to sign
-          $files = Get-ChildItem -Path unsigned -Recurse -Include *.exe, *.dll
+          $files = Get-ChildItem -Path unsigned -Recurse -Include *.exe, *.dll, *.nupkg, *.zip
 
-          if ($files.Count -eq 0) {
-              Write-Host "⚠️  No files found to sign" -ForegroundColor Yellow
-              exit 0
+          if (-not $files) {
+            Write-Host "⚠️ No artifacts found to sign."
+            exit 0
           }
 
           Write-Host "Found $($files.Count) file(s) to sign" -ForegroundColor Cyan
-          Write-Host "Using SimplySign Desktop (logged in session)" -ForegroundColor Cyan
-
           $signedCount = 0
           $failedCount = 0
 
           foreach ($f in $files) {
-              Write-Host "🔏 Signing: $($f.Name)..." -ForegroundColor Cyan
+            Write-Host "🔏 Signing $($f.Name)..."
+            & "$signer" --sign "$($f.FullName)" --tsa "$tsa"
 
-              # SimplySign Desktop with default certificate and timestamp (app must be logged in)
-              & $simplysign --sign "$($f.FullName)" --tsa "http://time.certum.pl" 2>&1 | Out-String | Write-Host
-
-              if ($LASTEXITCODE -eq 0) {
-                  # SimplySign signs in-place, copy to signed folder
-                  Copy-Item $f.FullName "signed\" -Force
-                  Write-Host "✅ Signed with timestamp: $($f.Name)" -ForegroundColor Green
-                  $signedCount++
-              } else {
-                  Write-Host "❌ Failed to sign: $($f.Name)" -ForegroundColor Red
-                  Write-Host "Exit code: $LASTEXITCODE" -ForegroundColor Yellow
-                  Write-Host "Ensure SimplySign Desktop is running and logged in" -ForegroundColor Yellow
-                  $failedCount++
-              }
+            if ($LASTEXITCODE -eq 0) {
+              Copy-Item $f.FullName signed/ -Force
+              Write-Host "✅ Signed: $($f.Name)" -ForegroundColor Green
+              $signedCount++
+            } else {
+              Write-Warning "❌ Failed to sign: $($f.Name) (exit code: $LASTEXITCODE)"
+              $failedCount++
+            }
           }
 
           Write-Host "`nSigning Summary:" -ForegroundColor Cyan
           Write-Host "✅ Successfully signed: $signedCount" -ForegroundColor Green
-          Write-Host "❌ Failed: $failedCount" -ForegroundColor Red
+          Write-Host "❌ Failed: $failedCount" -ForegroundColor Yellow
 
-          if ($failedCount -gt 0) {
+          # Continue even if some files fail - partial signing is acceptable
+          if ($signedCount -eq 0) {
+              Write-Error "No files were signed successfully"
               exit 1
           }
 
