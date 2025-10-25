@@ -13,10 +13,7 @@ permissions:
 
 jobs:
   sign:
-    if: >
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'push' &&
-      (startsWith(github.event.workflow_run.head_branch, 'main') || startsWith(github.event.workflow_run.head_branch, 'v'))
+    if: github.event.workflow_run.conclusion == 'success'
     name: Sign artifacts on self-hosted runner
     runs-on: [self-hosted, windows, code-sign]
 
