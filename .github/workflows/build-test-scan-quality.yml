@@ -1,4 +1,4 @@
-name: Build & Test & Scan
+name: Build Test and Scan Quality
 
 on:
   push:
@@ -13,7 +13,7 @@ permissions:
 jobs:
   quality-check:
     runs-on: windows-latest
-    name: Build & Test & Scan
+    name: Build, Test and Virus Scan
 
     steps:
       - uses: actions/checkout@v4
@@ -23,14 +23,10 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Setup NuGet
-        uses: nuget/setup-nuget@v1
-
-      - name: Restore dependencies
-        run: dotnet restore
-
-      - name: Build solution
-        run: dotnet build --configuration Release --no-restore
+      - name: Restore and build
+        run: |
+          dotnet restore
+          dotnet build --configuration Release --no-restore
 
       - name: Run unit tests
         run: dotnet test --configuration Release --no-build --logger trx
