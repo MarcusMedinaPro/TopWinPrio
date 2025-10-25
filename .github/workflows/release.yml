@@ -49,7 +49,8 @@ jobs:
       - name: Generate release checksums
         run: |
           cd release-packages
-          Get-FileHash * -Algorithm SHA256 | Select-Object Hash, @{Name="File";Expression={Split-Path $_.Path -Leaf}} | Format-Table -AutoSize | Out-File -FilePath SHA256SUMS.txt -Encoding UTF8
+          # Calculate checksums for all files EXCEPT any existing SHA256SUMS.txt to avoid file locking
+          Get-ChildItem -File | Where-Object { $_.Name -ne "SHA256SUMS.txt" } | Get-FileHash -Algorithm SHA256 | Select-Object Hash, @{Name="File";Expression={$_.Path | Split-Path -Leaf}} | Format-Table -AutoSize | Out-File -FilePath SHA256SUMS.txt -Encoding UTF8
           Get-Content SHA256SUMS.txt
 
       - name: Create GitHub Release
