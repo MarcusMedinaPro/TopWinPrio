@@ -1,4 +1,4 @@
-name: Build & Test
+name: 🧪 Build & Test
 
 on:
   push:
@@ -12,36 +12,77 @@ permissions:
 
 jobs:
   quality-check:
-    name: Build & Test
+    name: 🔍 Build, Test & Scan
     runs-on: windows-latest
 
     steps:
-      - name: Checkout
+      # -----------------------------
+      # 1️⃣ Setup & Build
+      # -----------------------------
+      - name: 🧭 Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup NuGet
+      - name: 📦 Setup NuGet
         uses: nuget/setup-nuget@v1
 
-      - name: Setup MSBuild
+      - name: 🛠️ Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
-      - name: Setup .NET SDK (tools)
+      - name: ⚙️ Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
 
-      - name: Restore packages
+      - name: 📥 Restore packages
         run: |
           nuget restore TopWinPrio.sln
           dotnet restore TopWinPrio.Tests/TopWinPrio.Tests.csproj
 
-      - name: Build solution
+      - name: 🏗️ Build solution
         run: msbuild TopWinPrio.sln /t:Build /p:Configuration=Release
 
-      - name: Run tests
+      - name: 🧪 Run tests
         run: dotnet test TopWinPrio.Tests/TopWinPrio.Tests.csproj --configuration Release --no-restore --logger trx
 
-      - name: Generate summary report
+      # -----------------------------
+      # 2️⃣ Security Scans
+      # -----------------------------
+
+      - name: 🧯 Scan with Windows Defender
+        id: defender
+        shell: pwsh
+        run: |
+          $exe = "TopWinPrio.CS\bin\Release\TopWinPrio.exe"
+          if (Test-Path $exe) {
+            Write-Host "🧠 Scanning $exe with Windows Defender..."
+            $defender = "C:\Program Files\Windows Defender\MpCmdRun.exe"
+            $result = & $defender -Scan -ScanType 3 -File $exe
+            $exit = $LASTEXITCODE
+            if ($exit -eq 0) {
+              Write-Host "✅ Defender scan passed."
+              echo "result=Clean" >> $env:GITHUB_OUTPUT
+            } else {
+              Write-Host "⚠️ Defender scan found potential issue (exit code: $exit)"
+              echo "result=Warning" >> $env:GITHUB_OUTPUT
+            }
+          } else {
+            Write-Host "⚠️ No executable found to scan."
+            echo "result=Skipped" >> $env:GITHUB_OUTPUT
+          }
+
+      - name: 🧬 VirusTotal Scan (optional)
+        if: ${{ secrets.VIRUSTOTAL_API_KEY != '' }}
+        id: virustotal
+        uses: crazy-max/ghaction-virustotal@v4
+        with:
+          vt_api_key: ${{ secrets.VIRUSTOTAL_API_KEY }}
+          files: TopWinPrio.CS/bin/Release/TopWinPrio.exe
+          fail_on_detected: false
+
+      # -----------------------------
+      # 3️⃣ Generate report
+      # -----------------------------
+      - name: 🧾 Generate summary report
         shell: pwsh
         run: |
           $report = @()
@@ -53,6 +94,21 @@ jobs:
           $report += "## 🧪 Test Results"
           $report += "All unit tests executed successfully."
           $report += ""
+          $report += "## 🛡️ Security Scans"
+          $report += ""
+          $report += "### 🔹 Windows Defender"
+          $report += "Result: **${{ steps.defender.outputs.result }}**"
+          $report += ""
+          if ("${{ steps.virustotal.outcome }}" -ne "") {
+            $report += "### 🔹 VirusTotal"
+            $report += "Result: **${{ steps.virustotal.outcome }}**"
+            $report += "Report: [View Scan on VirusTotal](${{ steps.virustotal.outputs.permalink }})"
+            $report += ""
+          } else {
+            $report += "### 🔹 VirusTotal"
+            $report += "Result: *(skipped — no API key configured)*"
+            $report += ""
+          }
           $report += "## 📋 Code Analysis"
           $report += "See full analysis in:"
           $report += "- [SonarCloud Analysis](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/sonarcloud.yml)"
@@ -60,7 +116,7 @@ jobs:
           $report += "_Report generated on $(Get-Date -Format u)_"
           $report | Out-File -FilePath quality-report.md -Encoding UTF8
 
-      - name: Upload Quality Report
+      - name: 📤 Upload Quality Report
         uses: actions/upload-artifact@v4
         with:
           name: quality-report
