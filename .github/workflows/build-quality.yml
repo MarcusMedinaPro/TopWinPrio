@@ -1,4 +1,4 @@
-name: 🧪 Build & Test
+name: Build & Test
 
 on:
   push:
@@ -12,42 +12,36 @@ permissions:
 
 jobs:
   quality-check:
-    name: 🔍 Build & Test
+    name: Build & Test
     runs-on: windows-latest
 
     steps:
-      # 1️⃣ Checkout
-      - name: 🧭 Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      # 2️⃣ Setup tooling for legacy WinForms projects
-      - name: 📦 Setup NuGet
+      - name: Setup NuGet
         uses: nuget/setup-nuget@v1
 
-      - name: 🛠️ Setup MSBuild
+      - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
-      - name: ⚙️ Setup .NET SDK (tools)
+      - name: Setup .NET SDK (tools)
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
 
-      # 3️⃣ Restore packages
-      - name: 📥 Restore packages
+      - name: Restore packages
         run: |
           nuget restore TopWinPrio.sln
           dotnet restore TopWinPrio.Tests/TopWinPrio.Tests.csproj
 
-      # 4️⃣ Build solution
-      - name: 🏗️ Build solution
+      - name: Build solution
         run: msbuild TopWinPrio.sln /t:Build /p:Configuration=Release
 
-      # 5️⃣ Run tests
-      - name: 🧪 Run tests
+      - name: Run tests
         run: dotnet test TopWinPrio.Tests/TopWinPrio.Tests.csproj --configuration Release --no-restore --logger trx
 
-      # 6️⃣ Generate summary report
-      - name: 🧾 Generate summary report
+      - name: Generate summary report
         shell: pwsh
         run: |
           $report = @()
@@ -57,17 +51,16 @@ jobs:
           $report += "Solution built successfully with MSBuild (.NET Framework 3.5)."
           $report += ""
           $report += "## 🧪 Test Results"
-          $report += "Tests executed successfully."
+          $report += "All unit tests executed successfully."
           $report += ""
           $report += "## 📋 Code Analysis"
-          $report += "For comprehensive analysis, see:"
+          $report += "See full analysis in:"
           $report += "- [SonarCloud Analysis](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/sonarcloud.yml)"
           $report += ""
           $report += "_Report generated on $(Get-Date -Format u)_"
           $report | Out-File -FilePath quality-report.md -Encoding UTF8
 
-      # 7️⃣ Upload Quality Report
-      - name: 📤 Upload Quality Report
+      - name: Upload Quality Report
         uses: actions/upload-artifact@v4
         with:
           name: quality-report
