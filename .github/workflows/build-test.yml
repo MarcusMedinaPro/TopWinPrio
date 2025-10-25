@@ -87,14 +87,15 @@ jobs:
         run: |
           Write-Host "📝 Creating VirusTotal Summary" -ForegroundColor Cyan
           
-          # Create summary header
-          $summary = "VirusTotal Scan Report - $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss UTC')`n"
+          # Create summary header  
+          $summary = "VirusTotal Scan Report - " + (Get-Date -Format "yyyy-MM-dd HH:mm:ss UTC") + "`n"
           $summary += "================================================================`n`n"
           $summary += "Files Analyzed:`n"
           
           # Add file information
           Get-ChildItem TopWinPrio.CS/bin/Release/*.exe, TopWinPrio.CS/bin/Release/*.dll | ForEach-Object { 
-            $summary += "- $($_.Name) ($([math]::Round($_.Length/1KB, 2)) KB)`n"
+            $fileSizeKB = [math]::Round($_.Length/1024, 2)
+            $summary += "- $($_.Name) ($fileSizeKB KB)`n"
           }
           
           # Add scan status
