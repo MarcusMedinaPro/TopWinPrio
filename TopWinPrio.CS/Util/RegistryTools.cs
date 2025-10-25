@@ -12,6 +12,7 @@
 
 namespace TopWinPrio
 {
+    using System;
     using Microsoft.Win32;
 
     /// <summary>
@@ -32,14 +33,34 @@ namespace TopWinPrio
         /// <returns>The <see cref="bool"/>.</returns>
         public static bool IsAutoStartEnabled(string keyName, string assemblyLocation)
         {
-            var registryKey = Registry.CurrentUser.OpenSubKey(HKCVRUNLOCATION);
-            if (registryKey == null)
+            if (string.IsNullOrWhiteSpace(keyName) || string.IsNullOrWhiteSpace(assemblyLocation))
             {
                 return false;
             }
 
-            var s = (string)registryKey.GetValue(keyName);
-            return s != null && s == assemblyLocation;
+            try
+            {
+                using (var registryKey = Registry.CurrentUser.OpenSubKey(HKCVRUNLOCATION))
+                {
+                    if (registryKey == null)
+                    {
+                        return false;
+                    }
+
+                    var s = registryKey.GetValue(keyName) as string;
+                    return s != null && s.Equals(assemblyLocation, StringComparison.OrdinalIgnoreCase);
+                }
+            }
+            catch (System.Security.SecurityException)
+            {
+                // Registry access denied
+                return false;
+            }
+            catch (System.UnauthorizedAccessException)
+            {
+                // Registry access denied
+                return false;
+            }
         }
 
         /// <summary>
@@ -49,18 +70,57 @@ namespace TopWinPrio
         /// <param name="assemblyLocation">The assemblyLocation <see cref="string"/>.</param>
         public static void SetAutoStart(string keyName, string assemblyLocation)
         {
-            var registryKey = Registry.CurrentUser.CreateSubKey(HKCVRUNLOCATION);
-            registryKey.SetValue(keyName, assemblyLocation);
+            if (string.IsNullOrWhiteSpace(keyName) || string.IsNullOrWhiteSpace(assemblyLocation))
+            {
+                throw new ArgumentException("Key name and assembly location cannot be null or empty.");
+            }
+
+            try
+            {
+                using (var registryKey = Registry.CurrentUser.CreateSubKey(HKCVRUNLOCATION))
+                {
+                    registryKey?.SetValue(keyName, assemblyLocation);
+                }
+            }
+            catch (System.Security.SecurityException ex)
+            {
+                throw new InvalidOperationException("Unable to access registry for auto-start configuration.", ex);
+            }
+            catch (System.UnauthorizedAccessException ex)
+            {
+                throw new InvalidOperationException("Insufficient permissions to modify registry auto-start settings.", ex);
+            }
         }
 
         /// <summary>
-        /// The UnSetAutoStart.
+        /// The RemoveAutoStart.
         /// </summary>
         /// <param name="keyName">The keyName <see cref="string"/>.</param>
         public static void RemoveAutoStart(string keyName)
         {
-            var registryKey = Registry.CurrentUser.CreateSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Run");
-            registryKey.DeleteValue(keyName);
+            if (string.IsNullOrWhiteSpace(keyName))
+            {
+                throw new ArgumentException("Key name cannot be null or empty.", nameof(keyName));
+            }
+
+            try
+            {
+                using (var registryKey = Registry.CurrentUser.CreateSubKey(HKCVRUNLOCATION))
+                {
+                    if (registryKey?.GetValue(keyName) != null)
+                    {
+                        registryKey.DeleteValue(keyName, false); // false = don't throw if key doesn't exist
+                    }
+                }
+            }
+            catch (System.Security.SecurityException ex)
+            {
+                throw new InvalidOperationException("Unable to access registry for auto-start removal.", ex);
+            }
+            catch (System.UnauthorizedAccessException ex)
+            {
+                throw new InvalidOperationException("Insufficient permissions to modify registry auto-start settings.", ex);
+            }
         }
     }
 }

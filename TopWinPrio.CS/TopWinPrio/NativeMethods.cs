@@ -39,8 +39,22 @@ namespace TopWinPrio
         {
             get
             {
-                _ = GetWindowThreadProcessId(GetForegroundWindow(), out var ui);
-                return (int)ui;
+                var windowHandle = GetForegroundWindow();
+                if (windowHandle == IntPtr.Zero)
+                {
+                    return 0;
+                }
+
+                try
+                {
+                    _ = GetWindowThreadProcessId(windowHandle, out var processId);
+                    return (int)processId;
+                }
+                catch (System.ComponentModel.Win32Exception)
+                {
+                    // Handle Win32 API errors gracefully
+                    return 0;
+                }
             }
         }
 
@@ -51,16 +65,25 @@ namespace TopWinPrio
         {
             get
             {
-                var s = string.Empty;
-                const int i = 256;
-                var stringBuilder = new StringBuilder(i);
-                var intPtr = NativeMethods.GetForegroundWindow();
-                if (NativeMethods.GetWindowText(intPtr, stringBuilder, i) > 0)
+                const int maxLength = 256;
+                var stringBuilder = new StringBuilder(maxLength);
+                var windowHandle = NativeMethods.GetForegroundWindow();
+                
+                if (windowHandle == IntPtr.Zero)
                 {
-                    s = stringBuilder.ToString();
+                    return string.Empty;
                 }
 
-                return s;
+                try
+                {
+                    var result = NativeMethods.GetWindowText(windowHandle, stringBuilder, maxLength);
+                    return result > 0 ? stringBuilder.ToString() : string.Empty;
+                }
+                catch (System.ComponentModel.Win32Exception)
+                {
+                    // Handle Win32 API errors gracefully
+                    return string.Empty;
+                }
             }
         }
 
