@@ -1,94 +1,39 @@
-name: 🧪 Build Test & Scan Quality
+name: 🚀 Release: Sign & Publish
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    tags:
+      - "v*"
+  workflow_run:
+    workflows: ["🔏 Sign Artifacts (Local Runner)"]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  quality-check:
-    runs-on: windows-latest
-    name: Build, Test, and Virus Scan
-    env:
-      HAS_VT_KEY: ${{ secrets.VIRUSTOTAL_API_KEY != '' }}
-
+  release:
+    runs-on: ubuntu-latest
+    name: Create GitHub Release with signed artifacts
     steps:
-      # 1️⃣ Checkout repository
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 2️⃣ Install .NET Framework 3.5 Targeting Pack
-      - name: 🧩 Install .NET Framework 3.5 Developer Pack
-        shell: pwsh
-        run: |
-          Write-Host "Installing .NET Framework 3.5 Developer Pack..."
-          $url = "https://download.visualstudio.microsoft.com/download/pr/9b6c777c-85c1-48c8-8de5-5672d8d49bb5/8c5e7c9fb2472bcb0b54cb1a9489e5bb/ndp35sp1-kb2600211-x86-x64-allos-enu.exe"
-          $installer = "$env:TEMP\ndp35sp1.exe"
-          Invoke-WebRequest -Uri $url -OutFile $installer
-          Start-Process -FilePath $installer -ArgumentList "/quiet", "/norestart" -Wait
-          Write-Host ".NET Framework 3.5 Developer Pack installed successfully."
-
-      # 3️⃣ Setup modern .NET SDK for tooling
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
+      - name: Download latest signed artifacts
+        uses: actions/download-artifact@v4
         with:
-          dotnet-version: 8.0.x
+          name: signed-artifacts
+          path: dist
 
-      # 4️⃣ Restore & build all projects
-      - name: Restore and Build
+      - name: Prepare upload folder
         run: |
-          dotnet restore
-          dotnet build --configuration Release --no-restore
+          mkdir uploads
+          cp dist/* uploads/ || true
 
-      # 5️⃣ Run tests (if present)
-      - name: Run Unit Tests
-        run: dotnet test --configuration Release --no-build --logger trx
-
-      # 6️⃣ Scan with VirusTotal (if API key is provided)
-      - name: VirusTotal Scan
-        if: env.HAS_VT_KEY == 'true'
-        uses: crazy-max/ghaction-virustotal@v4
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          vt_api_key: ${{ secrets.VIRUSTOTAL_API_KEY }}
-          files: |
-            **/*.exe
-            **/*.dll
-            **/*.nupkg
-          vt_monitor: false
-
-      # 7️⃣ Generate summary report
-      - name: Generate Summary Report
-        shell: pwsh
-        run: |
-          $report = @()
-          $report += "# 🧪 Build & Test Quality Report"
-          $report += ""
-          $report += "## ✅ Build Status"
-          $report += "Solution built successfully targeting .NET Framework 3.5."
-          $report += ""
-          $report += "## 🧪 Test Results"
-          $report += "All tests executed successfully."
-          $report += ""
-          if ($env:HAS_VT_KEY -eq "true") {
-            $report += "## 🧠 VirusTotal"
-            $report += "Scan completed – see VirusTotal dashboard for details."
-          } else {
-            $report += "## 🧠 VirusTotal"
-            $report += "Skipped – no API key provided."
-          }
-          $report += ""
-          $report += "_Report generated on $(Get-Date -Format u)_"
-          $report | Out-File -FilePath quality-report.md -Encoding UTF8
-          Get-Content quality-report.md | Write-Host
-
-      # 8️⃣ Upload Quality Report
-      - name: Upload Quality Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: quality-report
-          path: quality-report.md
+          files: uploads/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

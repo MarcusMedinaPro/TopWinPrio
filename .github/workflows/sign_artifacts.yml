@@ -1,7 +1,6 @@
 name: 🔏 Sign Artifacts (Local Runner)
 
 on:
-  workflow_dispatch:
   workflow_run:
     workflows: ["🧪 Build Test & Scan Quality"]
     types: [completed]
@@ -13,19 +12,20 @@ jobs:
   sign:
     name: Sign artifacts on self-hosted runner
     runs-on: [self-hosted, windows, code-sign]
+
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download build artifacts
+      - name: Download unsigned build artifacts
         uses: actions/download-artifact@v4
         with:
+          name: unsigned-artifacts
           path: unsigned
 
       - name: Prepare output folder
         shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force -Path signed | Out-Null
+        run: New-Item -ItemType Directory -Force -Path signed | Out-Null
 
       - name: Sign all executables, DLLs, and NuGet packages
         shell: pwsh
