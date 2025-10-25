@@ -1,0 +1,56 @@
+name: 🔏 Sign Artifacts (Local Runner)
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["🧪 Build Test & Scan Quality"]
+    types: [completed]
+
+permissions:
+  contents: write
+
+jobs:
+  sign:
+    name: Sign artifacts on self-hosted runner
+    runs-on: [self-hosted, windows, code-sign]
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: unsigned
+
+      - name: Prepare output folder
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path signed | Out-Null
+
+      - name: Sign all executables, DLLs, and NuGet packages
+        shell: pwsh
+        env:
+          CERTUM_TSA_URL: http://time.certum.pl
+          CERTUM_CERT_NAME: "Open Source Developer, Marcus Ackre Medina"
+        run: |
+          $signtool = "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe"
+          $tsa = $env:CERTUM_TSA_URL
+          $certName = $env:CERTUM_CERT_NAME
+          $files = Get-ChildItem -Path unsigned -Recurse -Include *.exe, *.dll, *.nupkg, *.zip
+
+          foreach ($f in $files) {
+              Write-Host "🔏 Signing $($f.FullName)..."
+              & $signtool sign /n $certName /fd SHA256 /tr $tsa /td SHA256 "$($f.FullName)"
+              if ($LASTEXITCODE -eq 0) {
+                  Copy-Item $f.FullName "signed\" -Force
+                  Write-Host "✅ Signed: $($f.Name)"
+              } else {
+                  Write-Host "❌ Failed to sign: $($f.Name)"
+              }
+          }
+
+      - name: Upload signed artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: signed-artifacts
+          path: signed/
