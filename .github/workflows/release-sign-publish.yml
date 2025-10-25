@@ -12,24 +12,28 @@ permissions:
 jobs:
   release:
     name: Sign, Scan and Publish Release
-    runs-on: self-hosted   # 👈 use self-hosted runner for SimplySign Desktop
+    runs-on: self-hosted   # 👈 Use your local runner with SimplySign Desktop
 
     steps:
-      - name: Checkout repository
+      # 1️⃣ Checkout repository
+      - name: 🧭 Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup .NET SDK
+      # 2️⃣ Setup .NET SDK
+      - name: 🛠️ Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
 
-      - name: Build Release
+      # 3️⃣ Build and test before release
+      - name: 🧱 Build and Test
         run: |
           dotnet restore
           dotnet build --configuration Release --no-restore
           dotnet test --configuration Release --no-build --logger trx
 
-      - name: Find binaries to sign
+      # 4️⃣ Find files to sign
+      - name: 🔍 Find release files
         id: findfiles
         shell: pwsh
         run: |
@@ -41,7 +45,8 @@ jobs:
           $json = $files | ConvertTo-Json -Compress
           echo "files=$json" >> $env:GITHUB_OUTPUT
 
-      - name: Sign files with local SimplySign
+      # 5️⃣ Code sign all binaries using local SimplySign
+      - name: 🔏 Code Sign via SimplySign Desktop
         shell: pwsh
         run: |
           $signtool = "C:\Program Files\Certum\SimplySign Desktop\signtool.exe"
@@ -54,7 +59,8 @@ jobs:
             }
           }
 
-      - name: Verify signatures
+      # 6️⃣ Verify signatures
+      - name: ✅ Verify signatures
         shell: pwsh
         run: |
           $signtool = "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe"
@@ -63,8 +69,9 @@ jobs:
             & $signtool verify /pa /v $_.FullName
           }
 
-      - name: VirusTotal Scan
-        if: ${{ secrets.VIRUSTOTAL_API_KEY }}
+      # 7️⃣ VirusTotal Scan (if API key exists)
+      - name: 🧠 VirusTotal Scan
+        if: ${{ secrets.VIRUSTOTAL_API_KEY != '' }}
         uses: crazy-max/ghaction-virustotal@v4
         with:
           vt_api_key: ${{ secrets.VIRUSTOTAL_API_KEY }}
@@ -74,12 +81,16 @@ jobs:
             **/*.nupkg
           vt_monitor: false
 
-      - name: Collect release files
+      # 8️⃣ Collect signed release files
+      - name: 📦 Collect release files
+        shell: pwsh
         run: |
           mkdir uploads
-          Get-ChildItem -Recurse -Include *.exe,*.dll,*.msi,*.nupkg,*.zip | Copy-Item -Destination uploads -Force
+          Get-ChildItem -Recurse -Include *.exe,*.dll,*.msi,*.nupkg,*.zip |
+            Copy-Item -Destination uploads -Force
 
-      - name: Download previous quality report
+      # 9️⃣ Download latest quality report (optional)
+      - name: 📜 Download previous quality report
         id: fetch-report
         uses: dawidd6/action-download-artifact@v6
         with:
@@ -88,7 +99,8 @@ jobs:
           path: dist
         continue-on-error: true
 
-      - name: Prepare release notes
+      # 🔟 Prepare release notes
+      - name: 🧾 Prepare release notes
         id: notes
         shell: pwsh
         run: |
@@ -102,7 +114,8 @@ jobs:
           echo $body >> $env:GITHUB_OUTPUT
           echo "EOF" >> $env:GITHUB_OUTPUT
 
-      - name: Create GitHub Release
+      # 11️⃣ Create GitHub Release
+      - name: 🚀 Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: uploads/*
