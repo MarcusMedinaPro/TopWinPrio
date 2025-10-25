@@ -32,6 +32,47 @@ jobs:
       - name: Build Release
         run: msbuild TopWinPrio.sln /t:Build /p:Configuration=Release
 
+      # 🧩 NEW STEP: Code Signing via Certum SimplySign
+      - name: 🔏 Sign executable via Certum Cloud
+        shell: pwsh
+        run: |
+          $username = "${{ secrets.CERTUM_LOGIN }}"
+          $password = "${{ secrets.CERTUM_PASSWORD }}"
+          $serial   = "${{ secrets.CERTUM_CERT_SN }}"
+          $tsa      = "${{ secrets.CERTUM_TSA_URL }}"
+
+          Write-Host "🔐 Signing TopWinPrio.exe using Certum SimplySign Cloud..."
+          $exePath = "TopWinPrio.CS/bin/Release/TopWinPrio.exe"
+
+          if (Test-Path $exePath) {
+            & "C:\Program Files (x86)\Certum\SimplySignDesktop\signtool.exe" sign `
+              /tr $tsa `
+              /td sha256 `
+              /fd sha256 `
+              /sha1 $serial `
+              /u $username `
+              /p $password `
+              $exePath
+
+            Write-Host "✅ Signing complete!"
+          } else {
+            Write-Host "❌ ERROR: Executable not found at $exePath"
+            exit 1
+          }
+
+      # ✅ Optional: Verify digital signature
+      - name: ✅ Verify signature
+        shell: pwsh
+        run: |
+          $exePath = "TopWinPrio.CS/bin/Release/TopWinPrio.exe"
+          if (Test-Path $exePath) {
+            Write-Host "🔍 Verifying digital signature..."
+            & "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe" verify /pa /v $exePath
+          } else {
+            Write-Host "❌ ERROR: Executable not found for verification!"
+            exit 1
+          }
+
       - name: Prepare artifacts
         shell: pwsh
         run: |
