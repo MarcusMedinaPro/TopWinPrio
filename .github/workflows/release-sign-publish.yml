@@ -1,0 +1,91 @@
+name: Release: Sign & Publish
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Sign & Publish Release
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Build Release configuration
+        run: |
+          dotnet restore
+          dotnet build --configuration Release --no-restore
+
+      - name: Find release files
+        id: findfiles
+        shell: pwsh
+        run: |
+          $patterns = @("*.exe","*.dll","*.msi","*.nupkg","*.zip")
+          $files = @()
+          foreach ($p in $patterns) {
+            $files += Get-ChildItem -Recurse -Filter $p | Select-Object -ExpandProperty FullName
+          }
+          $json = $files | ConvertTo-Json -Compress
+          echo "files=$json" >> $env:GITHUB_OUTPUT
+
+      - name: Code Sign via Certum
+        shell: pwsh
+        env:
+          CERTUM_TSA_URL: ${{ secrets.CERTUM_TSA_URL }}
+          CERTUM_CERT_SN: ${{ secrets.CERTUM_CERT_SN }}
+          CERTUM_LOGIN: ${{ secrets.CERTUM_LOGIN }}
+          CERTUM_PASSWORD: ${{ secrets.CERTUM_PASSWORD }}
+        run: |
+          $files = (ConvertFrom-Json "${{ steps.findfiles.outputs.files }}")
+          $signtool = "C:\Program Files (x86)\Certum\SimplySign Desktop\signtool.exe"
+          foreach ($f in $files) {
+            if ($f -match '\.exe$|\.dll$|\.msi$') {
+              Write-Host "Signing: $f"
+              & $signtool sign /tr $env:CERTUM_TSA_URL /td sha256 /fd sha256 /sha1 $env:CERTUM_CERT_SN /u $env:CERTUM_LOGIN /p $env:CERTUM_PASSWORD $f
+            }
+          }
+
+      - name: VirusTotal Scan
+        if: ${{ secrets.VIRUSTOTAL_API_KEY }}
+        uses: crazy-max/ghaction-virustotal@v4
+        with:
+          vt_api_key: ${{ secrets.VIRUSTOTAL_API_KEY }}
+          files: |
+            **/*.exe
+            **/*.dll
+            **/*.nupkg
+          vt_monitor: false
+
+      - name: Verify signatures
+        shell: pwsh
+        run: |
+          $signtool = "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe"
+          Get-ChildItem -Recurse -Include *.exe,*.dll,*.msi | ForEach-Object {
+            Write-Host "Verifying: $($_.FullName)"
+            & $signtool verify /pa /v $_.FullName
+          }
+
+      - name: Collect release files
+        run: |
+          mkdir uploads
+          Get-ChildItem -Recurse -Include *.exe,*.dll,*.msi,*.nupkg,*.zip | Copy-Item -Destination uploads -Force
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: uploads/*
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
