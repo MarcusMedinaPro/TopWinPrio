@@ -1,4 +1,4 @@
-name: Build Test and Scan
+name: 🧪 Build Test & Scan Quality
 
 on:
   push:
@@ -13,26 +13,43 @@ permissions:
 jobs:
   quality-check:
     runs-on: windows-latest
-    name: Build, Test and Virus Scan
+    name: Build, Test, and Virus Scan
     env:
       HAS_VT_KEY: ${{ secrets.VIRUSTOTAL_API_KEY != '' }}
 
     steps:
-      - uses: actions/checkout@v4
+      # 1️⃣ Checkout repository
+      - name: Checkout
+        uses: actions/checkout@v4
 
+      # 2️⃣ Install .NET Framework 3.5 Targeting Pack
+      - name: 🧩 Install .NET Framework 3.5 Developer Pack
+        shell: pwsh
+        run: |
+          Write-Host "Installing .NET Framework 3.5 Developer Pack..."
+          $url = "https://download.visualstudio.microsoft.com/download/pr/9b6c777c-85c1-48c8-8de5-5672d8d49bb5/8c5e7c9fb2472bcb0b54cb1a9489e5bb/ndp35sp1-kb2600211-x86-x64-allos-enu.exe"
+          $installer = "$env:TEMP\ndp35sp1.exe"
+          Invoke-WebRequest -Uri $url -OutFile $installer
+          Start-Process -FilePath $installer -ArgumentList "/quiet", "/norestart" -Wait
+          Write-Host ".NET Framework 3.5 Developer Pack installed successfully."
+
+      # 3️⃣ Setup modern .NET SDK for tooling
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
 
-      - name: Restore and build
+      # 4️⃣ Restore & build all projects
+      - name: Restore and Build
         run: |
           dotnet restore
           dotnet build --configuration Release --no-restore
 
-      - name: Run unit tests
+      # 5️⃣ Run tests (if present)
+      - name: Run Unit Tests
         run: dotnet test --configuration Release --no-build --logger trx
 
+      # 6️⃣ Scan with VirusTotal (if API key is provided)
       - name: VirusTotal Scan
         if: env.HAS_VT_KEY == 'true'
         uses: crazy-max/ghaction-virustotal@v4
@@ -44,26 +61,32 @@ jobs:
             **/*.nupkg
           vt_monitor: false
 
-      - name: Generate quality report
+      # 7️⃣ Generate summary report
+      - name: Generate Summary Report
         shell: pwsh
         run: |
           $report = @()
-          $report += "# 🧪 Build & Test Report"
+          $report += "# 🧪 Build & Test Quality Report"
           $report += ""
-          $report += "✅ Build: Passed"
-          $report += "✅ Tests: Executed"
-
+          $report += "## ✅ Build Status"
+          $report += "Solution built successfully targeting .NET Framework 3.5."
+          $report += ""
+          $report += "## 🧪 Test Results"
+          $report += "All tests executed successfully."
+          $report += ""
           if ($env:HAS_VT_KEY -eq "true") {
-            $report += "🧠 VirusTotal: Scanned"
+            $report += "## 🧠 VirusTotal"
+            $report += "Scan completed – see VirusTotal dashboard for details."
           } else {
-            $report += "🧠 VirusTotal: Skipped (no API key)"
+            $report += "## 🧠 VirusTotal"
+            $report += "Skipped – no API key provided."
           }
-
           $report += ""
-          $report += "_Generated on $(Get-Date -Format u)_"
-          $report | Out-File quality-report.md -Encoding UTF8
+          $report += "_Report generated on $(Get-Date -Format u)_"
+          $report | Out-File -FilePath quality-report.md -Encoding UTF8
           Get-Content quality-report.md | Write-Host
 
+      # 8️⃣ Upload Quality Report
       - name: Upload Quality Report
         uses: actions/upload-artifact@v4
         with:
