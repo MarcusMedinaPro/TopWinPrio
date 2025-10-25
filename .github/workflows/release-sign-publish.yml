@@ -13,26 +13,24 @@ jobs:
   release:
     name: Sign, Scan and Publish Release
     runs-on: self-hosted   # 👈 Use your local runner with SimplySign Desktop
+    env:
+      HAS_VT_KEY: ${{ secrets.VIRUSTOTAL_API_KEY != '' }}
 
     steps:
-      # 1️⃣ Checkout repository
       - name: 🧭 Checkout repository
         uses: actions/checkout@v4
 
-      # 2️⃣ Setup .NET SDK
       - name: 🛠️ Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
 
-      # 3️⃣ Build and test before release
       - name: 🧱 Build and Test
         run: |
           dotnet restore
           dotnet build --configuration Release --no-restore
           dotnet test --configuration Release --no-build --logger trx
 
-      # 4️⃣ Find files to sign
       - name: 🔍 Find release files
         id: findfiles
         shell: pwsh
@@ -45,7 +43,6 @@ jobs:
           $json = $files | ConvertTo-Json -Compress
           echo "files=$json" >> $env:GITHUB_OUTPUT
 
-      # 5️⃣ Code sign all binaries using local SimplySign
       - name: 🔏 Code Sign via SimplySign Desktop
         shell: pwsh
         run: |
@@ -59,7 +56,6 @@ jobs:
             }
           }
 
-      # 6️⃣ Verify signatures
       - name: ✅ Verify signatures
         shell: pwsh
         run: |
@@ -69,9 +65,8 @@ jobs:
             & $signtool verify /pa /v $_.FullName
           }
 
-      # 7️⃣ VirusTotal Scan (if API key exists)
       - name: 🧠 VirusTotal Scan
-        if: ${{ secrets.VIRUSTOTAL_API_KEY != '' }}
+        if: env.HAS_VT_KEY == 'true'
         uses: crazy-max/ghaction-virustotal@v4
         with:
           vt_api_key: ${{ secrets.VIRUSTOTAL_API_KEY }}
@@ -81,7 +76,6 @@ jobs:
             **/*.nupkg
           vt_monitor: false
 
-      # 8️⃣ Collect signed release files
       - name: 📦 Collect release files
         shell: pwsh
         run: |
@@ -89,7 +83,6 @@ jobs:
           Get-ChildItem -Recurse -Include *.exe,*.dll,*.msi,*.nupkg,*.zip |
             Copy-Item -Destination uploads -Force
 
-      # 9️⃣ Download latest quality report (optional)
       - name: 📜 Download previous quality report
         id: fetch-report
         uses: dawidd6/action-download-artifact@v6
@@ -99,7 +92,6 @@ jobs:
           path: dist
         continue-on-error: true
 
-      # 🔟 Prepare release notes
       - name: 🧾 Prepare release notes
         id: notes
         shell: pwsh
@@ -114,7 +106,6 @@ jobs:
           echo $body >> $env:GITHUB_OUTPUT
           echo "EOF" >> $env:GITHUB_OUTPUT
 
-      # 11️⃣ Create GitHub Release
       - name: 🚀 Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
