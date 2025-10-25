@@ -1,4 +1,4 @@
-name: Build, Sign & VirusTotal Scan (Generic)
+name: Build & Test & Scan
 
 on:
   push:
@@ -12,15 +12,12 @@ permissions:
 
 jobs:
   quality-check:
-    name: Build, Sign & VirusTotal Scan
     runs-on: windows-latest
+    name: Build & Test & Scan
 
     steps:
-      # 1️⃣ Checkout
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      # 2️⃣ Setup tools
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
@@ -29,153 +26,41 @@ jobs:
       - name: Setup NuGet
         uses: nuget/setup-nuget@v1
 
-      # 3️⃣ Copy to a clean temp folder
-      - name: Copy repo to temp
-        shell: pwsh
-        run: |
-          $temp = "C:\Temp\VirusTotalBuild"
-          if (Test-Path $temp) { Remove-Item -Recurse -Force $temp }
-          New-Item -ItemType Directory -Force -Path $temp | Out-Null
-          Copy-Item -Recurse -Force -Path "$env:GITHUB_WORKSPACE\*" -Destination $temp
-          Write-Host "✅ Copied repository to $temp"
+      - name: Restore dependencies
+        run: dotnet restore
 
-      # 4️⃣ Build everything with dotnet
-      - name: Build project
-        shell: pwsh
-        run: |
-          cd C:\Temp\VirusTotalBuild
-          dotnet restore
-          dotnet build --configuration Release --no-restore
-          Write-Host "✅ Build complete"
+      - name: Build solution
+        run: dotnet build --configuration Release --no-restore
 
-      # 5️⃣ Find all relevant files (exe, dll, nupkg, msi, zip)
-      - name: Find candidate files
-        id: findfiles
-        shell: pwsh
-        run: |
-          $root = "C:\Temp\VirusTotalBuild"
-          $patterns = @("*.exe","*.dll","*.nupkg","*.msi","*.zip")
-          $files = @()
-          foreach ($p in $patterns) {
-            $files += Get-ChildItem -Path $root -Recurse -Filter $p -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
-          }
-          $files = $files | Sort-Object -Unique
-          Write-Host "Found files:"
-          $files | ForEach-Object { Write-Host "- $_" }
-          $json = $files | ConvertTo-Json -Compress
-          echo "files=$json" >> $env:GITHUB_OUTPUT
+      - name: Run unit tests
+        run: dotnet test --configuration Release --no-build --logger trx
 
-      # 6️⃣ Sign all binaries (optional)
-      - name: Code Sign with Certum (optional)
-        id: sign
-        shell: pwsh
-        env:
-          CERTUM_TSA_URL: ${{ secrets.CERTUM_TSA_URL }}
-          CERTUM_CERT_SN: ${{ secrets.CERTUM_CERT_SN }}
-          CERTUM_LOGIN: ${{ secrets.CERTUM_LOGIN }}
-          CERTUM_PASSWORD: ${{ secrets.CERTUM_PASSWORD }}
-        run: |
-          $files = (ConvertFrom-Json "${{ steps.findfiles.outputs.files }}")
-          $signtoolPaths = @(
-            "C:\Program Files (x86)\Certum\SimplySign Desktop\signtool.exe",
-            "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe"
-          )
-          $signtool = $signtoolPaths | Where-Object { Test-Path $_ } | Select-Object -First 1
-          if (-not $signtool) { Write-Host "⚠️ No signtool found, skipping signing."; exit 0 }
-
-          $signedCount = 0
-          foreach ($f in $files) {
-            $ext = [IO.Path]::GetExtension($f).ToLowerInvariant()
-            if ($ext -in ".exe",".dll",".msi") {
-              Write-Host "🔏 Signing $f..."
-              & $signtool sign `
-                /tr $env:CERTUM_TSA_URL `
-                /td sha256 `
-                /fd sha256 `
-                /sha1 $env:CERTUM_CERT_SN `
-                /u $env:CERTUM_LOGIN `
-                /p $env:CERTUM_PASSWORD `
-                $f
-              if ($LASTEXITCODE -eq 0) {
-                $signedCount++
-                Write-Host "✅ Signed: $f"
-              } else {
-                Write-Host "⚠️ Sign failed ($LASTEXITCODE): $f"
-              }
-            }
-          }
-          echo "signed=$signedCount" >> $env:GITHUB_OUTPUT
-
-      # 7️⃣ VirusTotal scan on all artifacts
       - name: VirusTotal Scan
         if: ${{ secrets.VIRUSTOTAL_API_KEY }}
         uses: crazy-max/ghaction-virustotal@v4
         with:
           vt_api_key: ${{ secrets.VIRUSTOTAL_API_KEY }}
           files: |
-            ${{ fromJson(steps.findfiles.outputs.files) | join('\n') }}
+            **/*.exe
+            **/*.dll
+            **/*.nupkg
           vt_monitor: false
 
-      # 8️⃣ Verify signatures
-      - name: Verify signatures (signtool)
-        id: verify
-        shell: pwsh
-        run: |
-          $files = (ConvertFrom-Json "${{ steps.findfiles.outputs.files }}")
-          $signtool = "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe"
-          $results = @()
-          foreach ($f in $files) {
-            $ext = [IO.Path]::GetExtension($f).ToLowerInvariant()
-            if ($ext -in ".exe",".dll",".msi") {
-              $out = & $signtool verify /pa /v $f 2>&1
-              $ok = ($out -match "Successfully verified")
-              $results += @{file=$f; verified=$ok; output=($out -join "`n")}
-            }
-          }
-          $json = $results | ConvertTo-Json -Compress
-          echo "verify_results=$json" >> $env:GITHUB_OUTPUT
-
-      # 9️⃣ Generate report (no Defender)
       - name: Generate quality report
-        id: report
         shell: pwsh
         run: |
-          $files = (ConvertFrom-Json "${{ steps.findfiles.outputs.files }}")
-          $verify = (ConvertFrom-Json "${{ steps.verify.outputs.verify_results }}")
           $report = @()
-          $report += "# Build, Sign & VirusTotal Scan Report"
+          $report += "# 🧪 Build & Test Report"
           $report += ""
-          $report += "## Files scanned"
-          foreach ($f in $files) { $report += "- $f" }
-          $report += ""
-          $report += "## Signature verification"
-          foreach ($v in $verify) {
-            $status = if ($v.verified -eq $true) { "✅ Valid" } else { "⚠️ Invalid" }
-            $report += "- $($v.file): $status"
-          }
-          $report += ""
-          $report += "## VirusTotal"
-          $report += "- Scanned using API key: **${{ secrets.VIRUSTOTAL_API_KEY && '✔️ Provided' || '❌ Not Set' }}**"
-          $report += "- Results are visible in the VirusTotal step log."
-          $report += ""
+          $report += "✅ Build: Passed"
+          $report += "✅ Tests: Executed"
+          $report += "🧠 VirusTotal: ${{ secrets.VIRUSTOTAL_API_KEY && 'Scanned' || 'Skipped' }}"
           $report += "_Generated on $(Get-Date -Format u)_"
-          $report | Out-File -FilePath quality-report.md -Encoding UTF8
+          $report | Out-File quality-report.md -Encoding UTF8
           echo "$((Get-Content quality-report.md -Raw))" >> $env:GITHUB_STEP_SUMMARY
 
-      # 🔟 Upload report
       - name: Upload Quality Report
         uses: actions/upload-artifact@v4
         with:
           name: quality-report
           path: quality-report.md
-
-      # 🧹 Cleanup
-      - name: Cleanup temp folder
-        if: always()
-        shell: pwsh
-        run: |
-          $temp = "C:\Temp\VirusTotalBuild"
-          if (Test-Path $temp) {
-            Remove-Item -Recurse -Force $temp
-            Write-Host "🧹 Temp folder cleaned up."
-          }
