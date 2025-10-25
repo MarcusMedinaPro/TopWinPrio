@@ -103,14 +103,26 @@ jobs:
       # Code metrics and complexity analysis
       - name: Calculate Code Metrics
         run: |
-          # Lines of code count
-          Get-ChildItem -Recurse -Include "*.cs" | Where-Object { $_.FullName -notlike "*\bin\*" -and $_.FullName -notlike "*\obj\*" } | ForEach-Object {
-              $content = Get-Content $_.FullName
-              "$($_.Name): $($content.Length) lines"
+          # Lines of code count - filter to files only
+          Get-ChildItem -Recurse -Include "*.cs" -File | Where-Object { 
+            $_.FullName -notlike "*\bin\*" -and 
+            $_.FullName -notlike "*\obj\*" -and
+            $_.FullName -notlike "*\packages\*"
+          } | ForEach-Object {
+              try {
+                $content = Get-Content $_.FullName -ErrorAction Stop
+                "$($_.Name): $($content.Length) lines"
+              } catch {
+                "$($_.Name): Error reading file - $($_.Exception.Message)"
+              }
           } | Out-File -FilePath code-metrics.txt
           
           # File count summary  
-          $csFiles = (Get-ChildItem -Recurse -Include "*.cs" | Where-Object { $_.FullName -notlike "*\bin\*" -and $_.FullName -notlike "*\obj\*" }).Count
+          $csFiles = (Get-ChildItem -Recurse -Include "*.cs" -File | Where-Object { 
+            $_.FullName -notlike "*\bin\*" -and 
+            $_.FullName -notlike "*\obj\*" -and
+            $_.FullName -notlike "*\packages\*"
+          }).Count
           "Total C# files: $csFiles" | Add-Content code-metrics.txt
           
           Get-Content code-metrics.txt
@@ -118,12 +130,20 @@ jobs:
       # Documentation coverage
       - name: Documentation Analysis
         run: |
-          # Check for XML documentation
-          Get-ChildItem -Recurse -Include "*.cs" | Where-Object { $_.FullName -notlike "*\bin\*" } | ForEach-Object {
-              $content = Get-Content $_.FullName -Raw
-              $xmlDocCount = ([regex]::Matches($content, "///")).Count
-              $publicMethodCount = ([regex]::Matches($content, "public.*\s+\w+\s*\(")).Count
-              "$($_.Name): $xmlDocCount XML docs, $publicMethodCount public methods"
+          # Check for XML documentation - filter to files only
+          Get-ChildItem -Recurse -Include "*.cs" -File | Where-Object { 
+            $_.FullName -notlike "*\bin\*" -and 
+            $_.FullName -notlike "*\obj\*" -and
+            $_.FullName -notlike "*\packages\*"
+          } | ForEach-Object {
+              try {
+                $content = Get-Content $_.FullName -Raw -ErrorAction Stop
+                $xmlDocCount = ([regex]::Matches($content, "///")).Count
+                $publicMethodCount = ([regex]::Matches($content, "public.*\s+\w+\s*\(")).Count
+                "$($_.Name): $xmlDocCount XML docs, $publicMethodCount public methods"
+              } catch {
+                "$($_.Name): Error reading file - $($_.Exception.Message)"
+              }
           } | Out-File -FilePath documentation-report.txt
           
           Get-Content documentation-report.txt
