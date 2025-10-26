@@ -7,66 +7,74 @@
 // For more information visit http://MarcusMedina.Pro
 //----------------------------------------------------------------------------------------------------------------
 
-#pragma warning disable ET002
+using System.Threading;
 
-namespace TopWinPrio
+namespace TopWinPrio;
+
+/// <summary>
+/// Entry point for TopWinPrio application
+/// </summary>
+internal sealed class Program
 {
-    using System;
-    using System.Threading;
-    using System.Windows.Forms;
+    /// <summary>
+    /// Prevents a default instance of the <see cref="Program"/> class from being created.
+    /// </summary>
+    private Program()
+    {
+    }
 
     /// <summary>
-    /// Defines the <see cref="Program"/>.
+    /// Application entry point
     /// </summary>
-    internal sealed class Program
+    [STAThread]
+    public static void Main()
     {
-        /// <summary>
-        /// Prevents a default instance of the <see cref="Program"/> class from being created.
-        /// </summary>
-        private Program()
+        Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+        Application.ThreadException += (sender, e) =>
         {
+            MessageBox.Show(
+                $"Thread Exception: {e.Exception.Message}\n\n{e.Exception.StackTrace}",
+                "TopWinPrio Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error);
+        };
+
+        AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+        {
+            var ex = e.ExceptionObject as Exception;
+            MessageBox.Show(
+                $"Unhandled Exception: {ex?.Message}\n\n{ex?.StackTrace}",
+                "TopWinPrio Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error);
+        };
+
+        try
+        {
+            using var mutex = new Mutex(true, "MarcusMedinaPro TopWinPrio", out bool isNewInstance);
+            if (isNewInstance)
+            {
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                using var frmPrio = new MainForm { Visible = false };
+                Application.Run(frmPrio);
+            }
+            else
+            {
+                MessageBox.Show(
+                    "TopWinPrio is already running.",
+                    "TopWinPrio",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
         }
-
-        /// <summary>
-        /// The Main.
-        /// </summary>
-        [STAThread]
-        public static void Main()
+        catch (Exception ex)
         {
-            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
-            Application.ThreadException += (sender, e) =>
-            {
-                System.Windows.Forms.MessageBox.Show($"Thread Exception: {e.Exception.Message}\n\n{e.Exception.StackTrace}", "TopWinPrio Error", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
-            };
-            AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
-            {
-                var ex = e.ExceptionObject as Exception;
-                System.Windows.Forms.MessageBox.Show($"Unhandled Exception: {ex?.Message}\n\n{ex?.StackTrace}", "TopWinPrio Error", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
-            };
-
-            try
-            {
-                using (var mutex = new Mutex(true, "MarcusMedinaPro TopWinPrio", out bool isNewInstance))
-                {
-                    if (isNewInstance)
-                    {
-                        Application.EnableVisualStyles();
-                        Application.SetCompatibleTextRenderingDefault(false);
-                        using (var frmPrio = new MainForm { Visible = false })
-                        {
-                            Application.Run(frmPrio);
-                        }
-                    }
-                    else
-                    {
-                        System.Windows.Forms.MessageBox.Show("TopWinPrio is already running.", "TopWinPrio", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Information);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Windows.Forms.MessageBox.Show($"Fatal error: {ex.Message}\n\nStack trace:\n{ex.StackTrace}", "TopWinPrio Error", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
-            }
+            MessageBox.Show(
+                $"Fatal error: {ex.Message}\n\nStack trace:\n{ex.StackTrace}",
+                "TopWinPrio Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error);
         }
     }
 }

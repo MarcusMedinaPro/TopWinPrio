@@ -1,5 +1,4 @@
 //----------------------------------------------------------------------------------------------------------------
-// File header copyright text should match
 // <copyright file="RegistryTools.cs" company="MarcusMedinapro">
 // Copyright (c) MarcusMedinaPro. All rights reserved.
 // </copyright>
@@ -8,114 +7,97 @@
 // For more information visit http://MarcusMedina.Pro
 //----------------------------------------------------------------------------------------------------------------
 
-#pragma warning disable ET002
+using System;
+using System.Security;
+using Microsoft.Win32;
 
-namespace TopWinPrio
+namespace TopWinPrio;
+
+/// <summary>
+/// Registry utility methods for Windows autostart configuration
+/// </summary>
+public static class RegistryTools
 {
-    using System;
-    using Microsoft.Win32;
+    private const string HKCVRUNLOCATION = "Software\\Microsoft\\Windows\\CurrentVersion\\Run";
 
     /// <summary>
-    /// Defines the <see cref="RegistryTools"/>.
+    /// Checks if autostart is enabled for the application
     /// </summary>
-    public static class RegistryTools
+    public static bool IsAutoStartEnabled(string keyName, string assemblyLocation)
     {
-        /// <summary>
-        /// Defines the HKCVRUNLOCATION.
-        /// </summary>
-        private const string HKCVRUNLOCATION = "Software\\Microsoft\\Windows\\CurrentVersion\\Run";
-
-        /// <summary>
-        /// The IsAutoStartEnabled.
-        /// </summary>
-        /// <param name="keyName">The keyName <see cref="string"/>.</param>
-        /// <param name="assemblyLocation">The assemblyLocation <see cref="string"/>.</param>
-        /// <returns>The <see cref="bool"/>.</returns>
-        public static bool IsAutoStartEnabled(string keyName, string assemblyLocation)
+        if (string.IsNullOrEmpty(keyName) || string.IsNullOrEmpty(assemblyLocation))
         {
-            if (string.IsNullOrEmpty(keyName) || string.IsNullOrEmpty(assemblyLocation))
-            {
-                return false;
-            }
-
-            try
-            {
-                using (var registryKey = Registry.CurrentUser.OpenSubKey(HKCVRUNLOCATION))
-                {
-                    return registryKey?.GetValue(keyName) is string value &&
-                           value.Equals(assemblyLocation, StringComparison.OrdinalIgnoreCase);
-                }
-            }
-            catch (System.Security.SecurityException)
-            {
-                // Registry access denied
-                return false;
-            }
-            catch (System.UnauthorizedAccessException)
-            {
-                // Registry access denied
-                return false;
-            }
+            return false;
         }
 
-        /// <summary>
-        /// The SetAutoStart.
-        /// </summary>
-        /// <param name="keyName">The keyName <see cref="string"/>.</param>
-        /// <param name="assemblyLocation">The assemblyLocation <see cref="string"/>.</param>
-        public static void SetAutoStart(string keyName, string assemblyLocation)
+        try
         {
-            if (string.IsNullOrEmpty(keyName) || string.IsNullOrEmpty(assemblyLocation))
-            {
-                throw new ArgumentException("Key name and assembly location cannot be null or empty.");
-            }
+            using var registryKey = Registry.CurrentUser.OpenSubKey(HKCVRUNLOCATION);
+            return registryKey?.GetValue(keyName) is string value &&
+                   value.Equals(assemblyLocation, StringComparison.OrdinalIgnoreCase);
+        }
+        catch (SecurityException)
+        {
+            // Registry access denied
+            return false;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            // Registry access denied
+            return false;
+        }
+    }
 
-            try
-            {
-                using (var registryKey = Registry.CurrentUser.CreateSubKey(HKCVRUNLOCATION))
-                {
-                    registryKey?.SetValue(keyName, assemblyLocation);
-                }
-            }
-            catch (System.Security.SecurityException ex)
-            {
-                throw new InvalidOperationException("Unable to access registry for auto-start configuration.", ex);
-            }
-            catch (System.UnauthorizedAccessException ex)
-            {
-                throw new InvalidOperationException("Insufficient permissions to modify registry auto-start settings.", ex);
-            }
+    /// <summary>
+    /// Enables autostart for the application
+    /// </summary>
+    public static void SetAutoStart(string keyName, string assemblyLocation)
+    {
+        if (string.IsNullOrEmpty(keyName) || string.IsNullOrEmpty(assemblyLocation))
+        {
+            throw new ArgumentException("Key name and assembly location cannot be null or empty.");
         }
 
-        /// <summary>
-        /// The RemoveAutoStart.
-        /// </summary>
-        /// <param name="keyName">The keyName <see cref="string"/>.</param>
-        public static void RemoveAutoStart(string keyName)
+        try
         {
-            if (string.IsNullOrEmpty(keyName))
-            {
-                throw new ArgumentException("Key name cannot be null or empty.", nameof(keyName));
-            }
+            using var registryKey = Registry.CurrentUser.CreateSubKey(HKCVRUNLOCATION);
+            registryKey?.SetValue(keyName, assemblyLocation);
+        }
+        catch (SecurityException ex)
+        {
+            throw new InvalidOperationException("Unable to access registry for auto-start configuration.", ex);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            throw new InvalidOperationException("Insufficient permissions to modify registry auto-start settings.", ex);
+        }
+    }
 
-            try
+    /// <summary>
+    /// Disables autostart for the application
+    /// </summary>
+    public static void RemoveAutoStart(string keyName)
+    {
+        if (string.IsNullOrEmpty(keyName))
+        {
+            throw new ArgumentException("Key name cannot be null or empty.", nameof(keyName));
+        }
+
+        try
+        {
+            using var registryKey = Registry.CurrentUser.CreateSubKey(HKCVRUNLOCATION);
+            if (registryKey?.GetValue(keyName) != null)
             {
-                using (var registryKey = Registry.CurrentUser.CreateSubKey(HKCVRUNLOCATION))
-                {
-                    if (registryKey?.GetValue(keyName) != null)
-                    {
-                        registryKey.DeleteValue(keyName, false); // false = don't throw if key doesn't exist
-                    }
-                }
+                registryKey.DeleteValue(keyName, false); // false = don't throw if key doesn't exist
             }
-            catch (System.Security.SecurityException ex)
-            {
-                throw new InvalidOperationException("Unable to access registry for auto-start removal.", ex);
-            }
-            catch (System.UnauthorizedAccessException ex)
-            {
-                throw new InvalidOperationException("Insufficient permissions to modify registry auto-start settings.", ex);
-            }
+        }
+        catch (SecurityException ex)
+        {
+            throw new InvalidOperationException("Unable to access registry for auto-start removal.", ex);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            throw new InvalidOperationException("Insufficient permissions to modify registry auto-start settings.", ex);
         }
     }
 }

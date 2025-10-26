@@ -5,7 +5,102 @@ All notable changes to TopWinPrio will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [3.0.0] - 2025-10-26
+
+### Changed - .NET 6 Migration with Comprehensive C# 10 Modernization
+- **BREAKING**: Migrated from .NET Framework 4.8 to .NET 6 (cross-platform .NET)
+- **Project Structure**: Converted to SDK-style .csproj format
+  - Reduced from 135 lines (old-style) to 53 lines (SDK-style)
+  - Implicit file inclusion with globbing patterns
+  - Modern MSBuild targets and properties
+  - Target Framework: `net6.0-windows` with `UseWindowsForms=true`
+  - C# Language Version: 10.0
+
+### Added - Modern C# 10 Features
+- **Global Usings** (`GlobalUsings.cs`): Centralized common namespace imports
+  - `global using System;`
+  - `global using System.Diagnostics;`
+  - `global using System.Drawing;`
+  - `global using System.Windows.Forms;`
+  - Removed redundant using statements from all files
+
+- **File-Scoped Namespaces**: Modern namespace syntax across all files
+  ```csharp
+  namespace TopWinPrio;  // Instead of namespace TopWinPrio { }
+  ```
+
+- **Records with Init-Only Properties**: Immutable data types with value semantics
+  ```csharp
+  private sealed record ProcessData
+  {
+      public ProcessPriorityClass LastPrio { get; init; }
+      public int ProcessID { get; init; }
+  }
+  ```
+
+- **Target-Typed New Expressions**: Type inference for object creation
+  ```csharp
+  oldProc = new();              // Instead of new ProcessData()
+  var size = new(0, 0);         // Instead of new Size(0, 0)
+  StringBuilder sb = new(256);  // Instead of new StringBuilder(256)
+  ```
+
+- **Generic Enum.Parse**: Type-safe enum parsing
+  ```csharp
+  Enum.Parse<ProcessPriorityClass>(text)  // Instead of (ProcessPriorityClass)Enum.Parse(typeof(...))
+  ```
+
+- **Record With Expressions**: Non-destructive immutable updates
+  ```csharp
+  processData = processData with
+  {
+      LastPrio = Enum.Parse<ProcessPriorityClass>(inactiveList.Text)
+  };
+  ```
+
+- **Using Declarations**: Simplified resource management without braces
+  ```csharp
+  using var mutex = new Mutex(...);  // Disposed at end of scope
+  using var frmPrio = new MainForm { Visible = false };
+  using var registryKey = Registry.CurrentUser.OpenSubKey(...);
+  ```
+
+### Changed - Code Structure Improvements
+- **Separated MainForm into partial classes** (standard Windows Forms pattern)
+  - **MainForm.cs** (306 lines): Business logic, event handlers, application code
+  - **MainForm.Designer.cs** (~700 lines): UI designer-generated code
+  - Proper separation of concerns matching Visual Studio designer expectations
+  - Easier maintenance: UI changes don't affect business logic
+
+- **Modernized all source files** with C# 10 syntax:
+  - `MainForm.cs`: Records, target-typed new, generic Enum.Parse, with expressions
+  - `Program.cs`: Using declarations, file-scoped namespace
+  - `NativeMethods.cs`: Removed redundant usings, target-typed new for StringBuilder
+  - `RegistryTools.cs`: Using declarations, file-scoped namespace
+
+### Version
+- Bumped version from 2.1.0 to **3.0.0** (major version for .NET 6 migration)
+- Updated `AssemblyInfo.cs`: `AssemblyVersion` and `AssemblyFileVersion` to 3.0.0.0
+
+### Benefits of .NET 6 Migration
+- **Cross-Platform .NET**: Modern, unified .NET platform (no longer .NET Framework)
+- **Performance**: Significant runtime performance improvements over .NET Framework
+- **Language Features**: Access to C# 10 and future C# versions
+- **Long-Term Support**: .NET 6 LTS supported until November 2024
+- **Modern Tooling**: Better IDE support, SDK-style projects, simplified build system
+- **Improved APIs**: Enhanced BCL with spans, value tuples, and async improvements
+- **Smaller Deployment**: Self-contained and trimmed deployments available
+
+### Runtime Requirements
+- Requires .NET 6 Desktop Runtime (Windows Forms support)
+- Windows 10 1607+ or Windows 11
+- Previous .NET Framework 4.8 version available on `net4.8` branch (tagged `baseline-net4.8`)
+
+### Migration Notes
+- **.NET 6 vs .NET Framework**: This is **cross-platform .NET**, not .NET Framework
+- **Breaking Change**: Applications must install .NET 6 runtime (not included in Windows by default)
+- **Compatibility**: Full Windows Forms API compatibility maintained
+- **Legacy Branch**: .NET Framework 4.8 code preserved on `net4.8` branch for reference
 
 ## [2.1.0] - 2025-10-26
 
