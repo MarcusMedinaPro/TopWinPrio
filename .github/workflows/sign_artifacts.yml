@@ -33,6 +33,17 @@ jobs:
         shell: pwsh
         run: New-Item -ItemType Directory -Force -Path signed | Out-Null
 
+      - name: Restart SimplySign Desktop
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          Write-Host "Restarting SimplySign Desktop to ensure fresh session..."
+          Get-Process -Name "SimplySignDesktop" -ErrorAction SilentlyContinue | Stop-Process -Force
+          Start-Sleep -Seconds 2
+          Start-Process "C:\Program Files\Certum\SimplySign Desktop\SimplySignDesktop.exe"
+          Start-Sleep -Seconds 5
+          Write-Host "SimplySign Desktop restarted"
+
       - name: Sign artifacts with Certum SimplySign Desktop
         shell: pwsh
         env:
@@ -41,17 +52,15 @@ jobs:
           $signer = "C:\Program Files\Certum\SimplySign Desktop\SimplySignDesktop.exe"
           $tsa = $env:CERTUM_TSA_URL
 
-          # Verify SimplySign Desktop exists
           if (-not (Test-Path $signer)) {
-              Write-Host "❌ SimplySign Desktop not found at: $signer" -ForegroundColor Red
-              Write-Host "Please install Certum SimplySign Desktop and ensure it's running" -ForegroundColor Yellow
+              Write-Host "❌ SimplySign Desktop not found" -ForegroundColor Red
               exit 1
           }
 
           $files = Get-ChildItem -Path unsigned -Recurse -Include *.exe, *.dll, *.nupkg, *.zip
 
           if (-not $files) {
-            Write-Host "⚠️ No artifacts found to sign."
+            Write-Host "⚠️ No artifacts found to sign"
             exit 0
           }
 
@@ -61,20 +70,23 @@ jobs:
 
           foreach ($f in $files) {
             Write-Host "🔏 Signing $($f.Name)..."
-            Write-Host "Command: $signer --sign `"$($f.FullName)`" --tsa `"$tsa`"" -ForegroundColor Gray
 
             $output = & "$signer" --sign "$($f.FullName)" --tsa "$tsa" 2>&1
             $exitCode = $LASTEXITCODE
 
-            Write-Host "Output: $output" -ForegroundColor Gray
-            Write-Host "Exit code: $exitCode" -ForegroundColor Gray
-
             if ($exitCode -eq 0) {
-              Copy-Item $f.FullName signed/ -Force
-              Write-Host "✅ Signed: $($f.Name)" -ForegroundColor Green
-              $signedCount++
+              # Verify signature
+              $sig = Get-AuthenticodeSignature $f.FullName
+              if ($sig.Status -eq 'Valid') {
+                Copy-Item $f.FullName signed/ -Force
+                Write-Host "✅ Signed & verified: $($f.Name)" -ForegroundColor Green
+                $signedCount++
+              } else {
+                Write-Warning "❌ Signed but verification failed: $($f.Name) - $($sig.Status)"
+                $failedCount++
+              }
             } else {
-              Write-Warning "❌ Failed to sign: $($f.Name) (exit code: $exitCode)"
+              Write-Warning "❌ Failed to sign: $($f.Name) (exit: $exitCode, output: $output)"
               $failedCount++
             }
           }
@@ -83,7 +95,6 @@ jobs:
           Write-Host "✅ Successfully signed: $signedCount" -ForegroundColor Green
           Write-Host "❌ Failed: $failedCount" -ForegroundColor Yellow
 
-          # Continue even if some files fail - partial signing is acceptable
           if ($signedCount -eq 0) {
               Write-Error "No files were signed successfully"
               exit 1
