@@ -29,77 +29,64 @@ jobs:
           workflow: build-test.yml
           run_id: ${{ github.event.workflow_run.id }}
 
-      - name: Prepare output folder
-        shell: pwsh
-        run: New-Item -ItemType Directory -Force -Path signed | Out-Null
-
-      - name: Verify SimplySign Desktop is running
+      - name: Copy Sign-All.ps1 script
         shell: pwsh
         run: |
-          $process = Get-Process -Name "SimplySignDesktop" -ErrorAction SilentlyContinue
-          if ($process) {
-            Write-Host "✅ SimplySign Desktop is running (PID: $($process.Id))" -ForegroundColor Green
+          $sourcePath = "C:\Git\Certskit\Sign-All.ps1"
+          $destPath = "unsigned\Sign-All.ps1"
+
+          if (Test-Path $sourcePath) {
+            Copy-Item $sourcePath $destPath -Force
+            Write-Host "✅ Copied Sign-All.ps1 from C:\Git\Certskit\" -ForegroundColor Green
           } else {
-            Write-Host "⚠️ SimplySign Desktop is not running" -ForegroundColor Yellow
-            Write-Host "Please start and login to SimplySign Desktop manually" -ForegroundColor Yellow
+            Write-Host "❌ Sign-All.ps1 not found at $sourcePath" -ForegroundColor Red
+            Write-Host "Please ensure C:\Git\Certskit\Sign-All.ps1 exists on runner machine" -ForegroundColor Yellow
             exit 1
           }
 
-      - name: Sign artifacts with Certum SimplySign Desktop
+      - name: Sign artifacts with Sign-All.ps1
         shell: pwsh
-        env:
-          CERTUM_TSA_URL: "http://time.certum.pl"
         run: |
-          $signer = "C:\Program Files\Certum\SimplySign Desktop\SimplySignDesktop.exe"
-          $tsa = $env:CERTUM_TSA_URL
+          Write-Host "Running Sign-All.ps1 in unsigned directory..." -ForegroundColor Cyan
+          cd unsigned
+          & .\Sign-All.ps1
 
-          if (-not (Test-Path $signer)) {
-              Write-Host "❌ SimplySign Desktop not found" -ForegroundColor Red
-              exit 1
+          # Check if signing was successful
+          $signedFiles = Get-ChildItem -Include *.exe, *.dll -Recurse | Where-Object {
+            $sig = Get-AuthenticodeSignature $_.FullName
+            $sig.Status -eq 'Valid'
           }
 
-          $files = Get-ChildItem -Path unsigned -Recurse -Include *.exe, *.dll, *.nupkg, *.zip
-
-          if (-not $files) {
-            Write-Host "⚠️ No artifacts found to sign"
-            exit 0
+          if ($signedFiles.Count -gt 0) {
+            Write-Host "✅ Successfully signed $($signedFiles.Count) file(s)" -ForegroundColor Green
+          } else {
+            Write-Error "No files were signed successfully"
+            exit 1
           }
 
-          Write-Host "Found $($files.Count) file(s) to sign" -ForegroundColor Cyan
-          $signedCount = 0
-          $failedCount = 0
+      - name: Prepare signed artifacts folder
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path signed | Out-Null
+
+          # Copy signed files to signed folder
+          $files = Get-ChildItem -Path unsigned -Include *.exe, *.dll -Recurse | Where-Object {
+            $sig = Get-AuthenticodeSignature $_.FullName
+            $sig.Status -eq 'Valid'
+          }
 
           foreach ($f in $files) {
-            Write-Host "🔏 Signing $($f.Name)..."
-
-            $output = & "$signer" --sign "$($f.FullName)" --tsa "$tsa" 2>&1
-            $exitCode = $LASTEXITCODE
-
-            if ($exitCode -eq 0) {
-              # Verify signature
-              $sig = Get-AuthenticodeSignature $f.FullName
-              if ($sig.Status -eq 'Valid') {
-                Copy-Item $f.FullName signed/ -Force
-                Write-Host "✅ Signed & verified: $($f.Name)" -ForegroundColor Green
-                $signedCount++
-              } else {
-                Write-Warning "❌ Signed but verification failed: $($f.Name) - $($sig.Status)"
-                $failedCount++
-              }
-            } else {
-              Write-Warning "❌ Failed to sign: $($f.Name) (exit: $exitCode, output: $output)"
-              $failedCount++
-            }
+            Copy-Item $f.FullName signed/ -Force
+            Write-Host "Copied signed: $($f.Name)" -ForegroundColor Green
           }
 
-          Write-Host "`nSigning Summary:" -ForegroundColor Cyan
-          Write-Host "✅ Successfully signed: $signedCount" -ForegroundColor Green
-          Write-Host "❌ Failed: $failedCount" -ForegroundColor Yellow
-
-          if ($signedCount -eq 0) {
-              Write-Error "No files were signed successfully"
-              exit 1
+          # Copy the sign log if it exists
+          if (Test-Path "unsigned\sign_log.txt") {
+            Copy-Item "unsigned\sign_log.txt" signed/ -Force
+            Write-Host "Copied sign_log.txt" -ForegroundColor Cyan
           }
+
+          Write-Host "✅ Signed artifacts prepared" -ForegroundColor Green
 
       - name: Upload signed artifacts
         uses: actions/upload-artifact@v4
