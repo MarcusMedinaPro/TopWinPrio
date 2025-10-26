@@ -33,16 +33,17 @@ jobs:
         shell: pwsh
         run: New-Item -ItemType Directory -Force -Path signed | Out-Null
 
-      - name: Restart SimplySign Desktop
+      - name: Verify SimplySign Desktop is running
         shell: pwsh
-        continue-on-error: true
         run: |
-          Write-Host "Restarting SimplySign Desktop to ensure fresh session..."
-          Get-Process -Name "SimplySignDesktop" -ErrorAction SilentlyContinue | Stop-Process -Force
-          Start-Sleep -Seconds 2
-          Start-Process "C:\Program Files\Certum\SimplySign Desktop\SimplySignDesktop.exe"
-          Start-Sleep -Seconds 5
-          Write-Host "SimplySign Desktop restarted"
+          $process = Get-Process -Name "SimplySignDesktop" -ErrorAction SilentlyContinue
+          if ($process) {
+            Write-Host "✅ SimplySign Desktop is running (PID: $($process.Id))" -ForegroundColor Green
+          } else {
+            Write-Host "⚠️ SimplySign Desktop is not running" -ForegroundColor Yellow
+            Write-Host "Please start and login to SimplySign Desktop manually" -ForegroundColor Yellow
+            exit 1
+          }
 
       - name: Sign artifacts with Certum SimplySign Desktop
         shell: pwsh
