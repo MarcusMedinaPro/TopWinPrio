@@ -2,7 +2,7 @@
 # This workflow is no longer used. Signing is now part of the release pipeline.
 # See release.yml for the new linear workflow: build → quality → scan → sign → release
 
-name: 🔏 Sign Artifacts (Local Runner) - DISABLED
+name: 🔏 Sign Artifacts (.NET 4.8) - DISABLED
 
 on:
   workflow_dispatch:  # Manual only - not triggered automatically

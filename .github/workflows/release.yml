@@ -1,4 +1,4 @@
-name: 🚀 Release Pipeline
+name: 🚀 Release Pipeline (.NET 4.8)
 
 on:
   push:

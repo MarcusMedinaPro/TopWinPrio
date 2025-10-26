@@ -2,7 +2,7 @@
 # Security and quality checks are now part of the release pipeline.
 # See release.yml job 2️⃣ Quality Gate for the new workflow.
 
-name: 🔒 Security & Quality Reports - DISABLED
+name: 🔒 Security & Quality Reports (.NET 4.8) - DISABLED
 
 on:
   workflow_dispatch:  # Manual only - not triggered automatically
