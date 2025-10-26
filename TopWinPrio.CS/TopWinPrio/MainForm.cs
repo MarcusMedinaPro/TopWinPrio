@@ -7,6 +7,7 @@
 // For more information visit http://MarcusMedina.Pro
 //----------------------------------------------------------------------------------------------------------------
 
+using System.ComponentModel;
 using System.Reflection;
 using TopWinPrio.Properties;
 
@@ -46,8 +47,15 @@ public partial class MainForm : Form
             {
                 process = Process.GetProcessById(theProc.ProcessID);
             }
-            catch (Exception ex)
+            catch (ArgumentException ex)
             {
+                // Process ID is invalid or process has exited
+                Debug.WriteLine(ex.Message);
+                return false;
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Process has not been started or has exited
                 Debug.WriteLine(ex.Message);
                 return false;
             }
@@ -62,8 +70,21 @@ public partial class MainForm : Form
                 process.PriorityClass = processPriorityClass;
                 return true;
             }
-            catch (Exception ex)
+            catch (Win32Exception ex)
             {
+                // Insufficient privileges or process has exited
+                Debug.WriteLine(ex.Message);
+                return false;
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Process has exited
+                Debug.WriteLine(ex.Message);
+                return false;
+            }
+            catch (NotSupportedException ex)
+            {
+                // Process is on a remote machine
                 Debug.WriteLine(ex.Message);
                 return false;
             }
@@ -223,8 +244,21 @@ public partial class MainForm : Form
                 LastPrio = process.PriorityClass,
             };
         }
-        catch (Exception ex)
+        catch (Win32Exception ex)
         {
+            // Access denied or process has exited
+            Debug.WriteLine(ex.Message);
+            return null;
+        }
+        catch (InvalidOperationException ex)
+        {
+            // Process has exited
+            Debug.WriteLine(ex.Message);
+            return null;
+        }
+        catch (NotSupportedException ex)
+        {
+            // Process is on a remote machine
             Debug.WriteLine(ex.Message);
             return null;
         }

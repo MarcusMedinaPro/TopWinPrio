@@ -78,6 +78,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `NativeMethods.cs`: Removed redundant usings, target-typed new for StringBuilder
   - `RegistryTools.cs`: Using declarations, file-scoped namespace
 
+### Fixed - CodeQL Security & Quality Warnings
+- **Replaced generic catch clauses with specific exception types**:
+  - `SetProcessPrio()`: Now catches `ArgumentException`, `InvalidOperationException`, `Win32Exception`, `NotSupportedException`
+  - `CreateProcessData()`: Now catches `Win32Exception`, `InvalidOperationException`, `NotSupportedException`
+  - Added meaningful comments explaining each exception scenario
+- **Suppressed legitimate generic catch in Main()**: Top-level exception handler must catch all exceptions
+- **Added SuppressMessage attributes for P/Invoke methods**: Documented why unmanaged code is necessary
+  - `GetForegroundWindow()`: No managed API exists for getting active window handle
+  - `GetWindowText()`: No managed API exists for getting window title from handle
+  - `GetWindowThreadProcessId()`: No managed API exists for getting process ID from window handle
+- **Added readonly modifier**: `Settings.defaultInstance` is now readonly (only assigned in static constructor)
+- **Suppressed mutex false positive**: Mutex variable is intentionally held via using declaration to prevent multiple instances
+
 ### Version
 - Bumped version from 2.1.0 to **3.0.0** (major version for .NET 6 migration)
 - Updated `AssemblyInfo.cs`: `AssemblyVersion` and `AssemblyFileVersion` to 3.0.0.0

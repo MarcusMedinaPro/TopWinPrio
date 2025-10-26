@@ -7,6 +7,7 @@
 // For more information visit http://MarcusMedina.Pro
 //----------------------------------------------------------------------------------------------------------------
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
 namespace TopWinPrio;
@@ -27,6 +28,7 @@ internal sealed class Program
     /// Application entry point
     /// </summary>
     [STAThread]
+    [SuppressMessage("CodeQL", "cs/useless-assignment-to-local", Justification = "Mutex must remain in scope during entire Application.Run() to prevent multiple instances - using declaration is intentional")]
     public static void Main()
     {
         Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
@@ -68,6 +70,8 @@ internal sealed class Program
                     MessageBoxIcon.Information);
             }
         }
+        [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Top-level exception handler - must catch all exceptions to prevent application crash")]
+        [SuppressMessage("CodeQL", "cs/catch-of-all-exceptions", Justification = "Top-level exception handler in Main() - intentionally catches all exceptions for user-friendly error reporting")]
         catch (Exception ex)
         {
             MessageBox.Show(

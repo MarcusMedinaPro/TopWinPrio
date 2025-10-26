@@ -8,6 +8,7 @@
 //----------------------------------------------------------------------------------------------------------------
 
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -78,16 +79,25 @@ internal static class NativeMethods
         }
     }
 
+    [SuppressMessage("Security", "CA5392:Use DefaultDllImportSearchPaths attribute for P/Invokes", Justification = "Standard Windows API - user32.dll is a system library")]
+    [SuppressMessage("Interoperability", "CA1401:P/Invokes should not be visible", Justification = "Internal class - not publicly exposed")]
+    [SuppressMessage("CodeQL", "cs/unmanaged-code", Justification = "Required to get active window handle - no managed .NET API equivalent")]
     [System.Security.SecurityCritical]
     [PreserveSig]
     [DllImport("user32.dll", CallingConvention = CallingConvention.Winapi, CharSet = CharSet.Unicode)]
     private static extern IntPtr GetForegroundWindow();
 
+    [SuppressMessage("Security", "CA5392:Use DefaultDllImportSearchPaths attribute for P/Invokes", Justification = "Standard Windows API - user32.dll is a system library")]
+    [SuppressMessage("Interoperability", "CA1401:P/Invokes should not be visible", Justification = "Internal class - not publicly exposed")]
+    [SuppressMessage("CodeQL", "cs/unmanaged-code", Justification = "Required to get window title from handle - no managed .NET API equivalent")]
     [PreserveSig]
     [DllImport("user32.dll", CallingConvention = CallingConvention.Winapi, CharSet = CharSet.Unicode)]
     [System.Security.SecurityCritical]
     private static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
 
+    [SuppressMessage("Security", "CA5392:Use DefaultDllImportSearchPaths attribute for P/Invokes", Justification = "Standard Windows API - user32.dll is a system library")]
+    [SuppressMessage("Interoperability", "CA1401:P/Invokes should not be visible", Justification = "Internal class - not publicly exposed")]
+    [SuppressMessage("CodeQL", "cs/unmanaged-code", Justification = "Required to get process ID from window handle - no managed .NET API equivalent")]
     [PreserveSig]
     [DllImport("user32.dll", CallingConvention = CallingConvention.Winapi, CharSet = CharSet.Unicode)]
     [System.Security.SecurityCritical]

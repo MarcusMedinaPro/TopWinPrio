@@ -27,7 +27,7 @@ namespace TopWinPrio.Properties
         /// <summary>
         /// Defines the defaultInstance
         /// </summary>
-        private static Settings defaultInstance;
+        private static readonly Settings defaultInstance;
 
         /// <summary>
         /// Initializes static members of the <see cref="Settings"/> class.
