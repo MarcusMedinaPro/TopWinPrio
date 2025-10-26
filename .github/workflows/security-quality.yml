@@ -1,13 +1,13 @@
-name: 🔒 Security & Quality Reports
+# ⚠️ DISABLED - Replaced by release.yml
+# Security and quality checks are now part of the release pipeline.
+# See release.yml job 2️⃣ Quality Gate for the new workflow.
+
+name: 🔒 Security & Quality Reports - DISABLED
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:  # Manual only - not triggered automatically
   schedule:
-    - cron: '0 2 * * 1'  # Weekly Monday 2 AM
-  workflow_dispatch:
+    - cron: '0 2 * * 1'  # Keep weekly scan for monitoring
 
 permissions:
   contents: read

@@ -4,13 +4,10 @@ on:
   push:
     branches:
       - main
-    tags:
-      - "v*"
   pull_request:
     branches:
       - main
   workflow_dispatch:
-  workflow_call:
 
 permissions:
   contents: read
@@ -45,118 +42,6 @@ jobs:
 
       - name: Run unit tests
         run: dotnet test TopWinPrio.Tests/TopWinPrio.Tests.csproj --configuration Release --no-build --logger trx
-
-      - name: Capture build logs (Phase 2 preparation)
-        run: |
-          # Kör MSBuild igen med verbos logging för StyleCop analys
-          msbuild TopWinPrio.sln /p:Configuration=Release /p:RunCodeAnalysis=true /flp:logfile=build-analysis.log /verbosity:normal
-        continue-on-error: true
-
-      - name: Generate SHA256 checksums
-        run: |
-          cd TopWinPrio.CS/bin/Release
-          Get-FileHash *.exe, *.dll -Algorithm SHA256 | Select-Object Hash, @{Name="File";Expression={Split-Path $_.Path -Leaf}} | Format-Table -AutoSize | Out-File -FilePath SHA256SUMS.txt -Encoding UTF8
-          Get-Content SHA256SUMS.txt
-
-      # Phase 2: VirusTotal scanning (with enhanced debugging)
-      - name: Verify VirusTotal API Key
-        run: |
-          Write-Host "🔍 VirusTotal API Key Check" -ForegroundColor Cyan
-          if ($env:VIRUSTOTAL_API_KEY) {
-            $keyLength = $env:VIRUSTOTAL_API_KEY.Length
-            $keyStart = $env:VIRUSTOTAL_API_KEY.Substring(0, [Math]::Min(8, $keyLength))
-            Write-Host "✅ API Key available: $keyStart... (length: $keyLength)" -ForegroundColor Green
-          } else {
-            Write-Host "❌ API Key not accessible" -ForegroundColor Red
-          }
-        env:
-          VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
-
-      - name: VirusTotal Scan
-        uses: crazy-max/ghaction-virustotal@v4
-        id: virustotal
-        continue-on-error: true
-        with:
-          vt_api_key: ${{ secrets.VIRUSTOTAL_API_KEY }}
-          files: |
-            TopWinPrio.CS/bin/Release/*.exe
-            TopWinPrio.CS/bin/Release/*.dll
-          vt_monitor: false
-
-      - name: Save VirusTotal Results
-        run: |
-          Write-Host "📝 Creating VirusTotal Summary" -ForegroundColor Cyan
-
-          # Create summary header
-          $summary = "VirusTotal Scan Report - " + (Get-Date -Format "yyyy-MM-dd HH:mm:ss UTC") + "`n"
-          $summary += "================================================================`n`n"
-          $summary += "Files Analyzed:`n"
-
-          # Add file information
-          Get-ChildItem TopWinPrio.CS/bin/Release/*.exe, TopWinPrio.CS/bin/Release/*.dll | ForEach-Object {
-            $fileSizeKB = [math]::Round($_.Length/1024, 2)
-            $summary += "- $($_.Name) ($fileSizeKB KB)`n"
-          }
-
-          # Add scan status
-          $summary += "`nScan Status: $($env:SCAN_STATUS)`n"
-          $summary += "================================================================`n`n"
-
-          if ($env:SCAN_STATUS -eq "success") {
-            $summary += "✅ VirusTotal scan completed successfully!`n"
-            $summary += "🔍 Check the workflow logs above for detailed scan results and URLs.`n"
-            $summary += "🔗 Scan results are available on VirusTotal website.`n`n"
-          } else {
-            $summary += "⚠️  VirusTotal scan encountered issues (this doesn't affect file safety).`n`n"
-            $summary += "Possible causes:`n"
-            $summary += "- API rate limiting (temporary - try again later)`n"
-            $summary += "- API key configuration issues`n"
-            $summary += "- Network connectivity issues`n"
-            $summary += "- VirusTotal service temporarily unavailable`n`n"
-            $summary += "Manual Verification Steps:`n"
-            $summary += "1. Download the release files`n"
-            $summary += "2. Verify SHA256 checksums (see SHA256SUMS.txt)`n"
-            $summary += "3. Upload TopWinPrio.exe to https://www.virustotal.com/gui/home/upload`n"
-            $summary += "4. Review results from multiple antivirus engines`n`n"
-            $summary += "Expected Results: 0 detections from major engines (unsigned binaries may trigger false positives)`n`n"
-          }
-
-          $summary += "Build Security Measures:`n"
-          $summary += "✅ Source code publicly auditable on GitHub`n"
-          $summary += "✅ Build process fully automated and transparent`n"
-          $summary += "✅ SonarCloud security analysis active`n"
-          $summary += "✅ CodeQL vulnerability scanning enabled`n"
-          $summary += "✅ SHA256 checksums for integrity verification`n"
-          $summary += "✅ Registry and P/Invoke security hardening applied`n`n"
-          $summary += "Community Verification:`n"
-          $summary += "Users are encouraged to perform independent scans and share results.`n"
-          $summary += "Report security concerns via GitHub Security Advisories.`n`n"
-          $summary += "================================================================`n"
-          $summary += "Generated by TopWinPrio GitHub Actions Pipeline`n"
-
-          $summary | Out-File -FilePath "TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt" -Encoding UTF8
-          Write-Host "📄 Summary saved to VirusTotal-Summary.txt" -ForegroundColor Green
-        env:
-          SCAN_STATUS: ${{ steps.virustotal.outcome }}
-        continue-on-error: true
-
-      - name: Upload Release binaries
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-bin
-          path: |
-            TopWinPrio.CS/bin/Release/*.exe
-            TopWinPrio.CS/bin/Release/*.dll
-            TopWinPrio.CS/bin/Release/SHA256SUMS.txt
-            TopWinPrio.CS/bin/Release/VirusTotal-Summary.txt
-
-      - name: Upload build analysis logs
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: build-logs
-          path: |
-            build-analysis.log
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
