@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2025-10-26
+
+### Changed - CI/CD Pipeline Optimization
+- **MAJOR**: Restructured CI/CD workflows for efficiency and linear execution
+- Split workflows into fast feedback loop (push/PR) and comprehensive release pipeline (tags)
+- **build-test.yml**: Simplified for rapid feedback (~2-3 minutes)
+  - Removed VirusTotal scan from push/PR workflow
+  - Removed checksum generation and analysis logs
+  - Focus: Compile + Unit Tests only for development iterations
+- **release.yml**: New 5-stage linear pipeline for releases
+  - 1️⃣ Build & Unit Test
+  - 2️⃣ Quality Gate (CodeQL security + StyleCop + Dependency scan)
+  - 3️⃣ Antivirus Scan (VirusTotal - single scan)
+  - 4️⃣ Code Signing (Certum with Sign-All.ps1)
+  - 5️⃣ Publish Release (signed artifacts only)
+  - Each stage blocks next stage on failure (fail fast)
+- Enhanced Sign-All.ps1 with `-SkipDefender` parameter for CI mode
+  - Avoids duplicate antivirus scans
+  - CI uses VirusTotal, local development uses Defender
+- Disabled redundant workflows:
+  - `sign_artifacts.yml` - Replaced by release.yml stage 4
+  - `security-quality.yml` - Replaced by release.yml stage 2 (kept weekly monitoring)
+
+### Added
+- Linear dependency chain in release pipeline prevents waste of signing operations on bad code
+- Quality gates block expensive operations (signing, publishing) until all checks pass
+- Clear stage-by-stage progress visualization with emoji indicators
+
+### Fixed
+- Eliminated duplicate antivirus scanning (was running 2-3 times per release)
+- Prevented signing of code that fails quality checks
+- Reduced VirusTotal API usage by 60-70% (single scan per release instead of multiple)
+
+### Performance
+- Push/PR workflow: ~2-3 minutes (down from ~8-10 minutes)
+- Release workflow: Same total time, but fails faster on quality issues
+- Signing ratio optimization: No wasted signatures on unscanned or low-quality code
+
 ## [2.0.0] - 2025-10-25
 
 ### Changed - .NET Framework 4.8 Migration
