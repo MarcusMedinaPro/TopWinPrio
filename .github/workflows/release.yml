@@ -23,20 +23,11 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
-
-      - name: Setup NuGet
-        uses: NuGet/setup-nuget@v2
-
-      - name: Restore classic NuGet packages
-        run: nuget restore TopWinPrio.sln
-
-      - name: Restore SDK-style/PackageReference dependencies
-        run: dotnet restore TopWinPrio.Tests/TopWinPrio.Tests.csproj
+      - name: Restore dependencies
+        run: dotnet restore TopWinPrio.CS/TopWinPrio.sln
 
       - name: Build Release configuration
-        run: msbuild TopWinPrio.sln /p:Configuration=Release /m /p:Platform="Any CPU"
+        run: dotnet build TopWinPrio.CS/TopWinPrio.sln --configuration Release --no-restore
 
       - name: Run unit tests
         run: dotnet test TopWinPrio.Tests/TopWinPrio.Tests.csproj --configuration Release --no-build --logger trx
@@ -46,8 +37,9 @@ jobs:
         with:
           name: unsigned-bin
           path: |
-            TopWinPrio.CS/bin/Release/*.exe
-            TopWinPrio.CS/bin/Release/*.dll
+            TopWinPrio.CS/TopWinPrio/bin/Release/net8.0-windows/*.exe
+            TopWinPrio.CS/TopWinPrio/bin/Release/net8.0-windows/*.dll
+            !TopWinPrio.CS/TopWinPrio/bin/Release/net8.0-windows/*.pdb
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -71,14 +63,8 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
-
-      - name: Setup NuGet
-        uses: NuGet/setup-nuget@v2
-
       - name: Restore packages
-        run: nuget restore TopWinPrio.sln
+        run: dotnet restore TopWinPrio.CS/TopWinPrio.sln
 
       # CodeQL Security Analysis
       - name: Initialize CodeQL
@@ -88,15 +74,15 @@ jobs:
           queries: security-extended,security-and-quality
 
       - name: Build for CodeQL Analysis
-        run: msbuild TopWinPrio.sln /p:Configuration=Release /m /p:Platform="Any CPU"
+        run: dotnet build TopWinPrio.CS/TopWinPrio.sln --configuration Release --no-restore
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
 
-      # StyleCop & Code Analysis
+      # Code Analysis
       - name: Run Enhanced Code Analysis
         run: |
-          msbuild TopWinPrio.sln /p:Configuration=Release /p:RunCodeAnalysis=true /p:TreatWarningsAsErrors=false /flp1:logfile=StyleCop-Report.log;verbosity=diagnostic /flp2:logfile=CodeAnalysis-Report.log;verbosity=normal
+          dotnet build TopWinPrio.CS/TopWinPrio.sln --configuration Release --no-restore /p:TreatWarningsAsErrors=false > CodeAnalysis-Report.log 2>&1
         continue-on-error: true
 
       # Dependency vulnerability scanning
@@ -112,7 +98,6 @@ jobs:
         with:
           name: quality-reports
           path: |
-            StyleCop-Report.log
             CodeAnalysis-Report.log
             vulnerability-report.txt
 

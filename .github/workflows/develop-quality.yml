@@ -1,0 +1,31 @@
+name: Develop Branch Quality Checks
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  quality-checks:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET 8
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore TopWinPrio.CS/TopWinPrio.sln
+
+    - name: Build
+      run: dotnet build TopWinPrio.CS/TopWinPrio.sln --configuration Release --no-restore
+
+    - name: Run tests
+      run: dotnet test TopWinPrio.Tests/TopWinPrio.Tests.csproj --configuration Release --no-build --verbosity normal
+
+    - name: Quality check passed
+      run: echo "✅ All quality checks passed! Ready to merge to main."
