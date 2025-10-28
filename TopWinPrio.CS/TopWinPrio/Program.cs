@@ -30,6 +30,7 @@ internal sealed class Program
     [STAThread]
     [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Top-level exception handler - must catch all exceptions to prevent application crash")]
     [SuppressMessage("CodeQL", "cs/catch-of-all-exceptions", Justification = "Top-level exception handler in Main() - intentionally catches all exceptions for user-friendly error reporting")]
+    [SuppressMessage("CodeQL", "cs/useless-assignment-to-local", Justification = "Discard pattern (_) used intentionally to suppress IDE0058 warnings for MessageBox.Show() DialogResult")]
     public static void Main()
     {
         Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
