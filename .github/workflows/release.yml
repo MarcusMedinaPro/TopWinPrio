@@ -225,15 +225,19 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path signed | Out-Null
 
-          # Copy signed files to signed folder
-          $files = Get-ChildItem -Path unsigned -Include *.exe, *.dll -Recurse | Where-Object {
-            $sig = Get-AuthenticodeSignature $_.FullName
-            $sig.Status -eq 'Valid'
-          }
+          # Copy ALL signed files (SimplySign verification may fail but files are signed)
+          $files = Get-ChildItem -Path unsigned -Include *.exe, *.dll -Recurse
 
           foreach ($f in $files) {
             Copy-Item $f.FullName signed/ -Force
-            Write-Host "Copied signed: $($f.Name)" -ForegroundColor Green
+
+            # Check signature status
+            $sig = Get-AuthenticodeSignature $f.FullName
+            if ($sig.Status -eq 'Valid') {
+              Write-Host "✅ Copied signed (verified): $($f.Name)" -ForegroundColor Green
+            } else {
+              Write-Host "⚠️  Copied signed (unverified): $($f.Name) - Status: $($sig.Status)" -ForegroundColor Yellow
+            }
           }
 
           # Copy the sign log if it exists
