@@ -9,121 +9,120 @@
 
 #pragma warning disable ET002
 
-namespace TopWinPrio.Properties
+namespace TopWinPrio.Properties;
+
+using System;
+using System.CodeDom.Compiler;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Drawing;
+using System.Globalization;
+using System.Resources;
+using System.Runtime.CompilerServices;
+
+/// <summary>
+/// Defines the <see cref="Resources"/>
+/// </summary>
+[DebuggerNonUserCode]
+[CompilerGenerated]
+[GeneratedCode("System.Resources.Tools.StronglyTypedResourceBuilder", "2.0.0.0")]
+internal class Resources
 {
-    using System;
-    using System.CodeDom.Compiler;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Drawing;
-    using System.Globalization;
-    using System.Resources;
-    using System.Runtime.CompilerServices;
+    /// <summary>
+    /// Defines the resourceCulture
+    /// </summary>
+    private static CultureInfo? resourceCulture;
 
     /// <summary>
-    /// Defines the <see cref="Resources"/>
+    /// Defines the resourceMan
     /// </summary>
-    [DebuggerNonUserCode]
-    [CompilerGenerated]
-    [GeneratedCode("System.Resources.Tools.StronglyTypedResourceBuilder", "2.0.0.0")]
-    internal class Resources
+    private static ResourceManager? resourceMan;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Resources"/> class.
+    /// </summary>
+    internal Resources()
     {
-        /// <summary>
-        /// Defines the resourceCulture
-        /// </summary>
-        private static CultureInfo resourceCulture;
+    }
 
-        /// <summary>
-        /// Defines the resourceMan
-        /// </summary>
-        private static ResourceManager resourceMan;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Resources"/> class.
-        /// </summary>
-        internal Resources()
+    /// <summary>
+    /// Gets or sets the Culture
+    /// </summary>
+    [EditorBrowsable(EditorBrowsableState.Advanced)]
+    internal static CultureInfo? Culture
+    {
+        get
         {
+            return Resources.resourceCulture;
         }
-
-        /// <summary>
-        /// Gets or sets the Culture
-        /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Advanced)]
-        internal static CultureInfo Culture
+        set
         {
-            get
-            {
-                return Resources.resourceCulture;
-            }
-            set
-            {
-                Resources.resourceCulture = value;
-            }
+            Resources.resourceCulture = value;
         }
+    }
 
-        /// <summary>
-        /// Gets the GameIcon
-        /// </summary>
-        internal static Bitmap GameIcon
+    /// <summary>
+    /// Gets the GameIcon
+    /// </summary>
+    internal static Bitmap GameIcon
+    {
+        get
         {
-            get
-            {
-                object obj = Resources.ResourceManager.GetObject("GameIcon", Resources.resourceCulture);
-                return (Bitmap)obj;
-            }
+            object? obj = Resources.ResourceManager.GetObject("GameIcon", Resources.resourceCulture);
+            return (Bitmap)obj!;
         }
+    }
 
-        /// <summary>
-        /// Gets the Positive
-        /// </summary>
-        internal static Bitmap Positive
+    /// <summary>
+    /// Gets the Positive
+    /// </summary>
+    internal static Bitmap Positive
+    {
+        get
         {
-            get
-            {
-                object obj = Resources.ResourceManager.GetObject("Positive", Resources.resourceCulture);
-                return (Bitmap)obj;
-            }
+            object? obj = Resources.ResourceManager.GetObject("Positive", Resources.resourceCulture);
+            return (Bitmap)obj!;
         }
+    }
 
-        /// <summary>
-        /// Gets the ResourceManager
-        /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Advanced)]
-        internal static ResourceManager ResourceManager
+    /// <summary>
+    /// Gets the ResourceManager
+    /// </summary>
+    [EditorBrowsable(EditorBrowsableState.Advanced)]
+    internal static ResourceManager ResourceManager
+    {
+        get
         {
-            get
+            if (Object.ReferenceEquals(Resources.resourceMan, null))
             {
-                if (Object.ReferenceEquals(Resources.resourceMan, null))
-                {
-                    ResourceManager resourceManager = new ResourceManager("TopWinPrio.Properties.Resources", typeof(Resources).Assembly);
-                    Resources.resourceMan = resourceManager;
-                }
-                return Resources.resourceMan;
+                ResourceManager resourceManager = new ResourceManager("TopWinPrio.Properties.Resources", typeof(Resources).Assembly);
+                Resources.resourceMan = resourceManager;
             }
+            return Resources.resourceMan!;
         }
+    }
 
-        /// <summary>
-        /// Gets the SettingsIcon
-        /// </summary>
-        internal static Bitmap SettingsIcon
+    /// <summary>
+    /// Gets the SettingsIcon
+    /// </summary>
+    internal static Bitmap SettingsIcon
+    {
+        get
         {
-            get
-            {
-                object obj = Resources.ResourceManager.GetObject("SettingsIcon", Resources.resourceCulture);
-                return (Bitmap)obj;
-            }
+            object? obj = Resources.ResourceManager.GetObject("SettingsIcon", Resources.resourceCulture);
+            return (Bitmap)obj!;
         }
+    }
 
-        /// <summary>
-        /// Gets the ThemeSettingsIcon
-        /// </summary>
-        internal static Bitmap ThemeSettingsIcon
+    /// <summary>
+    /// Gets the ThemeSettingsIcon
+    /// </summary>
+    internal static Bitmap ThemeSettingsIcon
+    {
+        get
         {
-            get
-            {
-                object obj = Resources.ResourceManager.GetObject("ThemeSettingsIcon", Resources.resourceCulture);
-                return (Bitmap)obj;
-            }
+            object? obj = Resources.ResourceManager.GetObject("ThemeSettingsIcon", Resources.resourceCulture);
+            return (Bitmap)obj!;
         }
     }
 }

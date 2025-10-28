@@ -29,7 +29,7 @@ public partial class MainForm : Form
     /// </summary>
     public MainForm()
     {
-        oldProc = new();
+        oldProc = new() { LastPrio = ProcessPriorityClass.Normal, ProcessID = 0 };
         isFirstRun = true;
         keyName = "MarcusMedinaPro (formerly LunaWorX.net) TopWinPrio";
         assemblyLocation = Assembly.GetExecutingAssembly().Location;
@@ -41,6 +41,12 @@ public partial class MainForm : Form
         /// </summary>
         private static bool SetProcessPrio(ProcessData theProc, ProcessPriorityClass processPriorityClass)
         {
+            // Validate priority class (must be a valid enum value, not default 0)
+            if (theProc.ProcessID <= 0 || !Enum.IsDefined(typeof(ProcessPriorityClass), processPriorityClass))
+            {
+                return false;
+            }
+
             Process process;
 
             try
@@ -149,7 +155,7 @@ public partial class MainForm : Form
             Settings.Default.StartHidden = startHiddenOption.Checked;
             Settings.Default.ApplicationPrio = applicationPriorityList.SelectedIndex;
             Settings.Default.Save();
-            SetProcessPrio(oldProc, oldProc.LastPrio);
+            _ = SetProcessPrio(oldProc, oldProc.LastPrio);
         }
 
         private void FrmPrio_Load(object sender, EventArgs e)
@@ -163,10 +169,10 @@ public partial class MainForm : Form
             showPopupOption.Checked = Settings.Default.BalloonHidden;
             applicationPriorityList.SelectedIndex = Settings.Default.ApplicationPrio;
             autostartOption.Checked = RegistryTools.IsAutoStartEnabled(keyName, assemblyLocation);
-            HsbTimer_Scroll(null, null);
+            HsbTimer_Scroll(null!, null!);
         }
 
-        private void HsbTimer_Scroll(object sender, ScrollEventArgs e)
+        private void HsbTimer_Scroll(object? sender, ScrollEventArgs? e)
         {
             var i = timerSlider.Value;
             refreshLabel.Text = $"Refresh every {i} secs";
@@ -191,7 +197,7 @@ public partial class MainForm : Form
         /// </summary>
         private void ProcessWindowChange(int newHandle)
         {
-            SetProcessPrio(oldProc, oldProc.LastPrio);
+            _ = SetProcessPrio(oldProc, oldProc.LastPrio);
             lastHandle = newHandle;
 
             var process = Process.GetProcessById(NativeMethods.GetTopWindowProcessID);
@@ -223,7 +229,7 @@ public partial class MainForm : Form
                 return false;
             }
 
-            if (process.Id == Process.GetCurrentProcess().Id)
+            if (process.Id == Environment.ProcessId)
             {
                 return false;
             }
@@ -234,7 +240,7 @@ public partial class MainForm : Form
     /// <summary>
     /// Creates ProcessData from process
     /// </summary>
-    private ProcessData? CreateProcessData(Process process)
+    private static ProcessData? CreateProcessData(Process process)
     {
         try
         {
@@ -299,8 +305,8 @@ public partial class MainForm : Form
             ? process.ProcessName
             : NativeMethods.GetTopWindowText;
 
-        listItem.SubItems.Add(windowTitle);
-        logList.Items.Insert(0, listItem);
+        _ = listItem.SubItems.Add(windowTitle);
+        _ = logList.Items.Insert(0, listItem);
 
         if (logList.Items.Count > 13)
         {
@@ -311,10 +317,10 @@ public partial class MainForm : Form
         private void TrayIcon_BalloonTipClicked(object sender, EventArgs e)
         {
             Visible = false;
-            TrayIcon_MouseClick(null, null);
+            TrayIcon_MouseClick(null!, null!);
         }
 
-        private void TrayIcon_MouseClick(object sender, MouseEventArgs e)
+        private void TrayIcon_MouseClick(object? sender, MouseEventArgs? e)
         {
             Visible = !Visible;
             if (Visible)
@@ -322,7 +328,7 @@ public partial class MainForm : Form
                 TopMost = true;
                 Application.DoEvents();
                 TopMost = false;
-                Focus();
+                _ = Focus();
             }
         }
 

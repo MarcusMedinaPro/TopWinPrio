@@ -13,7 +13,7 @@ using System.Threading;
 namespace TopWinPrio;
 
 /// <summary>
-/// Entry point for TopWinPrio application
+/// Entry point for TopWinPrio application.
 /// </summary>
 internal sealed class Program
 {
@@ -25,30 +25,30 @@ internal sealed class Program
     }
 
     /// <summary>
-    /// Application entry point
+    /// Application entry point.
     /// </summary>
     [STAThread]
-    [SuppressMessage("CodeQL", "cs/useless-assignment-to-local", Justification = "Mutex must remain in scope during entire Application.Run() to prevent multiple instances - using declaration is intentional")]
+    [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Top-level exception handler - must catch all exceptions to prevent application crash")]
+    [SuppressMessage("CodeQL", "cs/catch-of-all-exceptions", Justification = "Top-level exception handler in Main() - intentionally catches all exceptions for user-friendly error reporting")]
     public static void Main()
     {
         Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
-        Application.ThreadException += (sender, e) =>
-        {
-            MessageBox.Show(
-                $"Thread Exception: {e.Exception.Message}\n\n{e.Exception.StackTrace}",
-                "TopWinPrio Error",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Error);
-        };
+        Application.ThreadException += (sender, e) => MessageBox.Show(
+            $"Thread Exception: {e.Exception.Message}\n\n{e.Exception.StackTrace}",
+            "TopWinPrio Error",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Error);
 
         AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
         {
-            var ex = e.ExceptionObject as Exception;
-            MessageBox.Show(
-                $"Unhandled Exception: {ex?.Message}\n\n{ex?.StackTrace}",
-                "TopWinPrio Error",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Error);
+            if (e.ExceptionObject is Exception ex)
+            {
+                _= MessageBox.Show(
+                    $"Unhandled Exception: {ex.Message}\n\nStack trace:\n{ex.StackTrace}",
+                    "TopWinPrio Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
         };
 
         try
@@ -63,18 +63,16 @@ internal sealed class Program
             }
             else
             {
-                MessageBox.Show(
+               _= MessageBox.Show(
                     "TopWinPrio is already running.",
                     "TopWinPrio",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
             }
         }
-        [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Top-level exception handler - must catch all exceptions to prevent application crash")]
-        [SuppressMessage("CodeQL", "cs/catch-of-all-exceptions", Justification = "Top-level exception handler in Main() - intentionally catches all exceptions for user-friendly error reporting")]
         catch (Exception ex)
         {
-            MessageBox.Show(
+            _ = MessageBox.Show(
                 $"Fatal error: {ex.Message}\n\nStack trace:\n{ex.StackTrace}",
                 "TopWinPrio Error",
                 MessageBoxButtons.OK,
