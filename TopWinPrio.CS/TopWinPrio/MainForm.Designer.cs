@@ -30,577 +30,591 @@ partial class MainForm
             base.Dispose(disposing);
         }
 
-        #region Windows Form Designer generated code
+    #region Windows Form Designer generated code
 
-        /// <summary>
-        /// Required method for Designer support - do not modify
-        /// the contents of this method with the code editor.
-        /// </summary>
-        private void InitializeComponent()
-        {
-            this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-            this.timerTopWindowCheck = new System.Windows.Forms.Timer(this.components);
-            this.closeButton = new System.Windows.Forms.Button();
-            this.exitButton = new System.Windows.Forms.Button();
-            this.allTabs = new System.Windows.Forms.TabControl();
-            this.prioList = new System.Windows.Forms.TabPage();
-            this.logList = new System.Windows.Forms.ListView();
-            this.clmTime = new System.Windows.Forms.ColumnHeader();
-            this.clmWindow = new System.Windows.Forms.ColumnHeader();
-            this.infoLabel = new System.Windows.Forms.Label();
-            this.logoPic = new System.Windows.Forms.PictureBox();
-            this.boostSettings = new System.Windows.Forms.TabPage();
-            this.boostFrame = new System.Windows.Forms.GroupBox();
-            this.inactiveList = new System.Windows.Forms.ComboBox();
-            this.inactiveLabel = new System.Windows.Forms.Label();
-            this.activeList = new System.Windows.Forms.ComboBox();
-            this.activeLabel = new System.Windows.Forms.Label();
-            this.timerSlider = new System.Windows.Forms.HScrollBar();
-            this.refreshLabel = new System.Windows.Forms.Label();
-            this.boostExplorerOption = new System.Windows.Forms.CheckBox();
-            this.settingsInfoText = new System.Windows.Forms.Label();
-            this.toolsPic = new System.Windows.Forms.PictureBox();
-            this.applicationSettings = new System.Windows.Forms.TabPage();
-            this.applicationFrame = new System.Windows.Forms.GroupBox();
-            this.applicationPriorityList = new System.Windows.Forms.ComboBox();
-            this.applicationPriorityLabel = new System.Windows.Forms.Label();
-            this.startHiddenOption = new System.Windows.Forms.CheckBox();
-            this.startBalloonOption = new System.Windows.Forms.CheckBox();
-            this.showPopupOption = new System.Windows.Forms.CheckBox();
-            this.autostartOption = new System.Windows.Forms.CheckBox();
-            this.applicationInfo = new System.Windows.Forms.Label();
-            this.settingsPic = new System.Windows.Forms.PictureBox();
-            this.trayIcon = new System.Windows.Forms.NotifyIcon(this.components);
-            this.checkBox5 = new System.Windows.Forms.CheckBox();
-            this.checkBox6 = new System.Windows.Forms.CheckBox();
-            this.checkBox7 = new System.Windows.Forms.CheckBox();
-            this.checkBox8 = new System.Windows.Forms.CheckBox();
-            this.comboBox1 = new System.Windows.Forms.ComboBox();
-            this.label5 = new System.Windows.Forms.Label();
-            this.comboBox2 = new System.Windows.Forms.ComboBox();
-            this.label6 = new System.Windows.Forms.Label();
-            this.hScrollBar1 = new System.Windows.Forms.HScrollBar();
-            this.label7 = new System.Windows.Forms.Label();
-            this.checkBox9 = new System.Windows.Forms.CheckBox();
-            this.allTabs.SuspendLayout();
-            this.prioList.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.logoPic)).BeginInit();
-            this.boostSettings.SuspendLayout();
-            this.boostFrame.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.toolsPic)).BeginInit();
-            this.applicationSettings.SuspendLayout();
-            this.applicationFrame.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.settingsPic)).BeginInit();
-            this.SuspendLayout();
-            //
-            // timerTopWindowCheck
-            //
-            this.timerTopWindowCheck.Enabled = true;
-            this.timerTopWindowCheck.Interval = 1000;
-            this.timerTopWindowCheck.Tick += new System.EventHandler(this.TimerTopWindowCheck_Tick);
-            //
-            // closeButton
-            //
-            this.closeButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.closeButton.Location = new System.Drawing.Point(231, 370);
-            this.closeButton.Name = "closeButton";
-            this.closeButton.Size = new System.Drawing.Size(75, 23);
-            this.closeButton.TabIndex = 0;
-            this.closeButton.Text = "&Close";
-            this.closeButton.UseVisualStyleBackColor = true;
-            this.closeButton.Click += new System.EventHandler(this.BtnClose_Click);
-            //
-            // exitButton
-            //
-            this.exitButton.Location = new System.Drawing.Point(4, 370);
-            this.exitButton.Name = "exitButton";
-            this.exitButton.Size = new System.Drawing.Size(75, 23);
-            this.exitButton.TabIndex = 0;
-            this.exitButton.Text = "&Exit";
-            this.exitButton.UseVisualStyleBackColor = true;
-            this.exitButton.Click += new System.EventHandler(this.BtnExit_Click);
-            //
-            // allTabs
-            //
-            this.allTabs.Controls.Add(this.prioList);
-            this.allTabs.Controls.Add(this.boostSettings);
-            this.allTabs.Controls.Add(this.applicationSettings);
-            this.allTabs.Dock = System.Windows.Forms.DockStyle.Top;
-            this.allTabs.Location = new System.Drawing.Point(0, 0);
-            this.allTabs.Name = "allTabs";
-            this.allTabs.SelectedIndex = 0;
-            this.allTabs.Size = new System.Drawing.Size(310, 364);
-            this.allTabs.TabIndex = 0;
-            //
-            // prioList
-            //
-            this.prioList.Controls.Add(this.logList);
-            this.prioList.Controls.Add(this.infoLabel);
-            this.prioList.Controls.Add(this.logoPic);
-            this.prioList.Location = new System.Drawing.Point(4, 22);
-            this.prioList.Name = "prioList";
-            this.prioList.Padding = new System.Windows.Forms.Padding(3);
-            this.prioList.Size = new System.Drawing.Size(302, 338);
-            this.prioList.TabIndex = 0;
-            this.prioList.Text = "prioList";
-            this.prioList.UseVisualStyleBackColor = true;
-            //
-            // logList
-            //
-            this.logList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.clmTime,
-            this.clmWindow});
-            this.logList.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.logList.Location = new System.Drawing.Point(3, 80);
-            this.logList.Name = "logList";
-            this.logList.Size = new System.Drawing.Size(296, 255);
-            this.logList.TabIndex = 0;
-            this.logList.UseCompatibleStateImageBehavior = false;
-            this.logList.View = System.Windows.Forms.View.Details;
-            //
-            // clmTime
-            //
-            this.clmTime.Text = "Time";
-            this.clmTime.Width = 48;
-            //
-            // clmWindow
-            //
-            this.clmWindow.Text = "Window title";
-            this.clmWindow.Width = 242;
-            //
-            // infoLabel
-            //
-            this.infoLabel.Location = new System.Drawing.Point(77, 16);
-            this.infoLabel.Name = "infoLabel";
-            this.infoLabel.Size = new System.Drawing.Size(217, 49);
-            this.infoLabel.TabIndex = 0;
-            this.infoLabel.Text = "List of applications boosted with higher prio, when having focus.";
-            //
-            // logoPic
-            //
-            this.logoPic.Image = global::TopWinPrio.Properties.Resources.GameIcon;
-            this.logoPic.Location = new System.Drawing.Point(8, 16);
-            this.logoPic.Name = "logoPic";
-            this.logoPic.Size = new System.Drawing.Size(64, 64);
-            this.logoPic.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
-            this.logoPic.TabIndex = 0;
-            this.logoPic.TabStop = false;
-            //
-            // boostSettings
-            //
-            this.boostSettings.Controls.Add(this.boostFrame);
-            this.boostSettings.Controls.Add(this.settingsInfoText);
-            this.boostSettings.Controls.Add(this.toolsPic);
-            this.boostSettings.Location = new System.Drawing.Point(4, 22);
-            this.boostSettings.Name = "boostSettings";
-            this.boostSettings.Padding = new System.Windows.Forms.Padding(3);
-            this.boostSettings.Size = new System.Drawing.Size(302, 338);
-            this.boostSettings.TabIndex = 1;
-            this.boostSettings.Text = "Boost settings";
-            this.boostSettings.UseVisualStyleBackColor = true;
-            //
-            // boostFrame
-            //
-            this.boostFrame.Controls.Add(this.inactiveList);
-            this.boostFrame.Controls.Add(this.inactiveLabel);
-            this.boostFrame.Controls.Add(this.activeList);
-            this.boostFrame.Controls.Add(this.activeLabel);
-            this.boostFrame.Controls.Add(this.timerSlider);
-            this.boostFrame.Controls.Add(this.refreshLabel);
-            this.boostFrame.Controls.Add(this.boostExplorerOption);
-            this.boostFrame.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.boostFrame.Location = new System.Drawing.Point(9, 87);
-            this.boostFrame.Name = "boostFrame";
-            this.boostFrame.Size = new System.Drawing.Size(285, 245);
-            this.boostFrame.TabIndex = 1;
-            this.boostFrame.TabStop = false;
-            this.boostFrame.Text = "Boost settings";
-            //
-            // inactiveList
-            //
-            this.inactiveList.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.inactiveList.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.inactiveList.FormattingEnabled = true;
-            this.inactiveList.Items.AddRange(new object[] {
-            "Default",
-            "Normal",
-            "BelowNormal",
-            "Idle (not a good idea)"});
-            this.inactiveList.Location = new System.Drawing.Point(134, 95);
-            this.inactiveList.Name = "inactiveList";
-            this.inactiveList.Size = new System.Drawing.Size(143, 21);
-            this.inactiveList.TabIndex = 6;
-            //
-            // inactiveLabel
-            //
-            this.inactiveLabel.AutoSize = true;
-            this.inactiveLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.inactiveLabel.Location = new System.Drawing.Point(3, 98);
-            this.inactiveLabel.Name = "inactiveLabel";
-            this.inactiveLabel.Size = new System.Drawing.Size(125, 13);
-            this.inactiveLabel.TabIndex = 5;
-            this.inactiveLabel.Text = "Force inactive window to";
-            //
-            // activeList
-            //
-            this.activeList.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.activeList.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.activeList.FormattingEnabled = true;
-            this.activeList.Items.AddRange(new object[] {
-            "AboveNormal",
-            "High",
-            "RealTime (dangerous)"});
-            this.activeList.Location = new System.Drawing.Point(134, 68);
-            this.activeList.Name = "activeList";
-            this.activeList.Size = new System.Drawing.Size(143, 21);
-            this.activeList.TabIndex = 4;
-            //
-            // activeLabel
-            //
-            this.activeLabel.AutoSize = true;
-            this.activeLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.activeLabel.Location = new System.Drawing.Point(3, 71);
-            this.activeLabel.Name = "activeLabel";
-            this.activeLabel.Size = new System.Drawing.Size(106, 13);
-            this.activeLabel.TabIndex = 3;
-            this.activeLabel.Text = "Set active window to";
-            //
-            // timerSlider
-            //
-            this.timerSlider.Location = new System.Drawing.Point(119, 39);
-            this.timerSlider.Maximum = 69;
-            this.timerSlider.Minimum = 1;
-            this.timerSlider.Name = "timerSlider";
-            this.timerSlider.Size = new System.Drawing.Size(163, 17);
-            this.timerSlider.TabIndex = 2;
-            this.timerSlider.TabStop = true;
-            this.timerSlider.Value = 1;
-            this.timerSlider.Scroll += new System.Windows.Forms.ScrollEventHandler(this.HsbTimer_Scroll);
-            //
-            // refreshLabel
-            //
-            this.refreshLabel.AutoSize = true;
-            this.refreshLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.refreshLabel.Location = new System.Drawing.Point(3, 43);
-            this.refreshLabel.Name = "refreshLabel";
-            this.refreshLabel.Size = new System.Drawing.Size(110, 13);
-            this.refreshLabel.TabIndex = 1;
-            this.refreshLabel.Text = "Refresh every 5 secs.";
-            //
-            // boostExplorerOption
-            //
-            this.boostExplorerOption.AutoSize = true;
-            this.boostExplorerOption.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.boostExplorerOption.Location = new System.Drawing.Point(6, 19);
-            this.boostExplorerOption.Name = "boostExplorerOption";
-            this.boostExplorerOption.Size = new System.Drawing.Size(93, 17);
-            this.boostExplorerOption.TabIndex = 0;
-            this.boostExplorerOption.Text = "Boost explorer";
-            this.boostExplorerOption.UseVisualStyleBackColor = true;
-            //
-            // settingsInfoText
-            //
-            this.settingsInfoText.Location = new System.Drawing.Point(77, 16);
-            this.settingsInfoText.Name = "settingsInfoText";
-            this.settingsInfoText.Size = new System.Drawing.Size(194, 64);
-            this.settingsInfoText.TabIndex = 0;
-            this.settingsInfoText.Text = "Boost settings:\r\nHere you can configure \r\nhow the program will boost \r\nyour appli" +
-    "cations.\r\n";
-            //
-            // toolsPic
-            //
-            this.toolsPic.Image = global::TopWinPrio.Properties.Resources.ThemeSettingsIcon;
-            this.toolsPic.Location = new System.Drawing.Point(8, 16);
-            this.toolsPic.Name = "toolsPic";
-            this.toolsPic.Size = new System.Drawing.Size(64, 64);
-            this.toolsPic.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
-            this.toolsPic.TabIndex = 2;
-            this.toolsPic.TabStop = false;
-            //
-            // applicationSettings
-            //
-            this.applicationSettings.Controls.Add(this.applicationFrame);
-            this.applicationSettings.Controls.Add(this.applicationInfo);
-            this.applicationSettings.Controls.Add(this.settingsPic);
-            this.applicationSettings.Location = new System.Drawing.Point(4, 22);
-            this.applicationSettings.Name = "applicationSettings";
-            this.applicationSettings.Size = new System.Drawing.Size(302, 338);
-            this.applicationSettings.TabIndex = 2;
-            this.applicationSettings.Text = "Application settings";
-            this.applicationSettings.UseVisualStyleBackColor = true;
-            //
-            // applicationFrame
-            //
-            this.applicationFrame.Controls.Add(this.applicationPriorityList);
-            this.applicationFrame.Controls.Add(this.applicationPriorityLabel);
-            this.applicationFrame.Controls.Add(this.startHiddenOption);
-            this.applicationFrame.Controls.Add(this.startBalloonOption);
-            this.applicationFrame.Controls.Add(this.showPopupOption);
-            this.applicationFrame.Controls.Add(this.autostartOption);
-            this.applicationFrame.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.applicationFrame.Location = new System.Drawing.Point(9, 88);
-            this.applicationFrame.Name = "applicationFrame";
-            this.applicationFrame.Size = new System.Drawing.Size(285, 231);
-            this.applicationFrame.TabIndex = 1;
-            this.applicationFrame.TabStop = false;
-            this.applicationFrame.Text = "Application settings";
-            //
-            // applicationPriorityList
-            //
-            this.applicationPriorityList.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.applicationPriorityList.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.applicationPriorityList.FormattingEnabled = true;
-            this.applicationPriorityList.Items.AddRange(new object[] {
-            "Normal",
-            "BelowNormal"});
-            this.applicationPriorityList.Location = new System.Drawing.Point(136, 109);
-            this.applicationPriorityList.Name = "applicationPriorityList";
-            this.applicationPriorityList.Size = new System.Drawing.Size(143, 21);
-            this.applicationPriorityList.TabIndex = 8;
-            //
-            // applicationPriorityLabel
-            //
-            this.applicationPriorityLabel.AutoSize = true;
-            this.applicationPriorityLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.applicationPriorityLabel.Location = new System.Drawing.Point(5, 112);
-            this.applicationPriorityLabel.Name = "applicationPriorityLabel";
-            this.applicationPriorityLabel.Size = new System.Drawing.Size(92, 13);
-            this.applicationPriorityLabel.TabIndex = 7;
-            this.applicationPriorityLabel.Text = "Application priority";
-            //
-            // startHiddenOption
-            //
-            this.startHiddenOption.AutoSize = true;
-            this.startHiddenOption.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.startHiddenOption.Location = new System.Drawing.Point(6, 42);
-            this.startHiddenOption.Name = "startHiddenOption";
-            this.startHiddenOption.Size = new System.Drawing.Size(83, 17);
-            this.startHiddenOption.TabIndex = 1;
-            this.startHiddenOption.Text = "Start hidden";
-            this.startHiddenOption.UseVisualStyleBackColor = true;
-            //
-            // startBalloonOption
-            //
-            this.startBalloonOption.AutoSize = true;
-            this.startBalloonOption.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.startBalloonOption.Location = new System.Drawing.Point(22, 65);
-            this.startBalloonOption.Name = "startBalloonOption";
-            this.startBalloonOption.Size = new System.Drawing.Size(125, 17);
-            this.startBalloonOption.TabIndex = 2;
-            this.startBalloonOption.Text = "Show balloon at start";
-            this.startBalloonOption.UseVisualStyleBackColor = true;
-            //
-            // showPopupOption
-            //
-            this.showPopupOption.AutoSize = true;
-            this.showPopupOption.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.showPopupOption.Location = new System.Drawing.Point(6, 88);
-            this.showPopupOption.Name = "showPopupOption";
-            this.showPopupOption.Size = new System.Drawing.Size(154, 17);
-            this.showPopupOption.TabIndex = 3;
-            this.showPopupOption.Text = "Show balloon when hidden";
-            this.showPopupOption.UseVisualStyleBackColor = true;
-            //
-            // autostartOption
-            //
-            this.autostartOption.AutoSize = true;
-            this.autostartOption.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.autostartOption.Location = new System.Drawing.Point(6, 18);
-            this.autostartOption.Name = "autostartOption";
-            this.autostartOption.Size = new System.Drawing.Size(114, 17);
-            this.autostartOption.TabIndex = 0;
-            this.autostartOption.Text = "Start with windows";
-            this.autostartOption.UseVisualStyleBackColor = true;
-            this.autostartOption.CheckedChanged += new System.EventHandler(this.ChkAutostart_CheckedChanged);
-            //
-            // applicationInfo
-            //
-            this.applicationInfo.Location = new System.Drawing.Point(77, 16);
-            this.applicationInfo.Name = "applicationInfo";
-            this.applicationInfo.Size = new System.Drawing.Size(194, 64);
-            this.applicationInfo.TabIndex = 0;
-            this.applicationInfo.Text = "Application settings:\r\nHere you can configure \r\nhow the program will behave.";
-            //
-            // settingsPic
-            //
-            this.settingsPic.Image = global::TopWinPrio.Properties.Resources.SettingsIcon;
-            this.settingsPic.Location = new System.Drawing.Point(8, 16);
-            this.settingsPic.Name = "settingsPic";
-            this.settingsPic.Size = new System.Drawing.Size(64, 64);
-            this.settingsPic.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
-            this.settingsPic.TabIndex = 6;
-            this.settingsPic.TabStop = false;
-            //
-            // trayIcon
-            //
-            this.trayIcon.BalloonTipIcon = System.Windows.Forms.ToolTipIcon.Info;
-            this.trayIcon.Icon = ((System.Drawing.Icon)(resources.GetObject("trayIcon.Icon")));
-            this.trayIcon.Text = "MarcusMedinaPro (formerly LunaWorX.net) TopWinPrio";
-            this.trayIcon.Visible = true;
-            this.trayIcon.BalloonTipClicked += new System.EventHandler(this.TrayIcon_BalloonTipClicked);
-            this.trayIcon.MouseClick += new System.Windows.Forms.MouseEventHandler(this.TrayIcon_MouseClick);
-            //
-            // checkBox5
-            //
-            this.checkBox5.AutoSize = true;
-            this.checkBox5.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.checkBox5.Location = new System.Drawing.Point(137, 19);
-            this.checkBox5.Name = "checkBox5";
-            this.checkBox5.Size = new System.Drawing.Size(83, 17);
-            this.checkBox5.TabIndex = 9;
-            this.checkBox5.Text = "Start hidden";
-            this.checkBox5.UseVisualStyleBackColor = true;
-            //
-            // checkBox6
-            //
-            this.checkBox6.AutoSize = true;
-            this.checkBox6.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.checkBox6.Location = new System.Drawing.Point(137, 38);
-            this.checkBox6.Name = "checkBox6";
-            this.checkBox6.Size = new System.Drawing.Size(125, 17);
-            this.checkBox6.TabIndex = 8;
-            this.checkBox6.Text = "Show balloon at start";
-            this.checkBox6.UseVisualStyleBackColor = true;
-            //
-            // checkBox7
-            //
-            this.checkBox7.AutoSize = true;
-            this.checkBox7.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.checkBox7.Location = new System.Drawing.Point(6, 38);
-            this.checkBox7.Name = "checkBox7";
-            this.checkBox7.Size = new System.Drawing.Size(154, 17);
-            this.checkBox7.TabIndex = 7;
-            this.checkBox7.Text = "Show balloon when hidden";
-            this.checkBox7.UseVisualStyleBackColor = true;
-            //
-            // checkBox8
-            //
-            this.checkBox8.AutoSize = true;
-            this.checkBox8.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.checkBox8.Location = new System.Drawing.Point(7, 19);
-            this.checkBox8.Name = "checkBox8";
-            this.checkBox8.Size = new System.Drawing.Size(114, 17);
-            this.checkBox8.TabIndex = 6;
-            this.checkBox8.Text = "Start with windows";
-            this.checkBox8.UseVisualStyleBackColor = true;
-            //
-            // comboBox1
-            //
-            this.comboBox1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.comboBox1.FormattingEnabled = true;
-            this.comboBox1.Items.AddRange(new object[] {
-            "Default",
-            "Normal",
-            "BelowNormal",
-            "Idle (not a good idea)"});
-            this.comboBox1.Location = new System.Drawing.Point(134, 95);
-            this.comboBox1.Name = "comboBox1";
-            this.comboBox1.Size = new System.Drawing.Size(143, 21);
-            this.comboBox1.TabIndex = 11;
-            //
-            // label5
-            //
-            this.label5.AutoSize = true;
-            this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label5.Location = new System.Drawing.Point(3, 98);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(125, 13);
-            this.label5.TabIndex = 10;
-            this.label5.Text = "Force inactive window to";
-            //
-            // comboBox2
-            //
-            this.comboBox2.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBox2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.comboBox2.FormattingEnabled = true;
-            this.comboBox2.Items.AddRange(new object[] {
-            "AboveNormal",
-            "High",
-            "RealTime (dangerous)"});
-            this.comboBox2.Location = new System.Drawing.Point(134, 68);
-            this.comboBox2.Name = "comboBox2";
-            this.comboBox2.Size = new System.Drawing.Size(143, 21);
-            this.comboBox2.TabIndex = 9;
-            //
-            // label6
-            //
-            this.label6.AutoSize = true;
-            this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label6.Location = new System.Drawing.Point(3, 71);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(106, 13);
-            this.label6.TabIndex = 8;
-            this.label6.Text = "Set active window to";
-            //
-            // hScrollBar1
-            //
-            this.hScrollBar1.Location = new System.Drawing.Point(119, 39);
-            this.hScrollBar1.Maximum = 69;
-            this.hScrollBar1.Minimum = 1;
-            this.hScrollBar1.Name = "hScrollBar1";
-            this.hScrollBar1.Size = new System.Drawing.Size(163, 17);
-            this.hScrollBar1.TabIndex = 7;
-            this.hScrollBar1.Value = 1;
-            //
-            // label7
-            //
-            this.label7.AutoSize = true;
-            this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label7.Location = new System.Drawing.Point(3, 43);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(110, 13);
-            this.label7.TabIndex = 6;
-            this.label7.Text = "Refresh every 5 secs.";
-            //
-            // checkBox9
-            //
-            this.checkBox9.AutoSize = true;
-            this.checkBox9.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.checkBox9.Location = new System.Drawing.Point(6, 19);
-            this.checkBox9.Name = "checkBox9";
-            this.checkBox9.Size = new System.Drawing.Size(93, 17);
-            this.checkBox9.TabIndex = 5;
-            this.checkBox9.Text = "Boost explorer";
-            this.checkBox9.UseVisualStyleBackColor = true;
-            //
-            // MainForm
-            //
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.CancelButton = this.closeButton;
-            this.ClientSize = new System.Drawing.Size(310, 396);
-            this.ControlBox = false;
-            this.Controls.Add(this.allTabs);
-            this.Controls.Add(this.exitButton);
-            this.Controls.Add(this.closeButton);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
-            this.Name = "MainForm";
-            this.Text = "MarcusMedinaPro (formerly LunaWorX.net) TopWinPrio";
-            this.Activated += new System.EventHandler(this.FrmPrio_Activated);
-            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.FrmPrio_FormClosed);
-            this.Load += new System.EventHandler(this.FrmPrio_Load);
-            this.allTabs.ResumeLayout(false);
-            this.prioList.ResumeLayout(false);
-            this.prioList.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.logoPic)).EndInit();
-            this.boostSettings.ResumeLayout(false);
-            this.boostSettings.PerformLayout();
-            this.boostFrame.ResumeLayout(false);
-            this.boostFrame.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.toolsPic)).EndInit();
-            this.applicationSettings.ResumeLayout(false);
-            this.applicationSettings.PerformLayout();
-            this.applicationFrame.ResumeLayout(false);
-            this.applicationFrame.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.settingsPic)).EndInit();
-            this.ResumeLayout(false);
-        }
+    /// <summary>
+    /// Required method for Designer support - do not modify
+    /// the contents of this method with the code editor.
+    /// </summary>
+    private void InitializeComponent()
+    {
+        components = new System.ComponentModel.Container();
+        var resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
+        timerTopWindowCheck = new Timer(components);
+        closeButton = new Button();
+        exitButton = new Button();
+        allTabs = new TabControl();
+        prioList = new TabPage();
+        logList = new ListView();
+        clmTime = new ColumnHeader();
+        clmWindow = new ColumnHeader();
+        infoLabel = new Label();
+        logoPic = new PictureBox();
+        boostSettings = new TabPage();
+        boostFrame = new GroupBox();
+        inactiveList = new ComboBox();
+        inactiveLabel = new Label();
+        activeList = new ComboBox();
+        activeLabel = new Label();
+        timerSlider = new HScrollBar();
+        refreshLabel = new Label();
+        boostExplorerOption = new CheckBox();
+        settingsInfoText = new Label();
+        toolsPic = new PictureBox();
+        applicationSettings = new TabPage();
+        applicationFrame = new GroupBox();
+        applicationPriorityList = new ComboBox();
+        applicationPriorityLabel = new Label();
+        startHiddenOption = new CheckBox();
+        startBalloonOption = new CheckBox();
+        showPopupOption = new CheckBox();
+        autostartOption = new CheckBox();
+        applicationInfo = new Label();
+        settingsPic = new PictureBox();
+        trayIcon = new NotifyIcon(components);
+        checkBox5 = new CheckBox();
+        checkBox6 = new CheckBox();
+        checkBox7 = new CheckBox();
+        checkBox8 = new CheckBox();
+        comboBox1 = new ComboBox();
+        label5 = new Label();
+        comboBox2 = new ComboBox();
+        label6 = new Label();
+        hScrollBar1 = new HScrollBar();
+        label7 = new Label();
+        checkBox9 = new CheckBox();
+        allTabs.SuspendLayout();
+        prioList.SuspendLayout();
+        ((System.ComponentModel.ISupportInitialize)logoPic).BeginInit();
+        boostSettings.SuspendLayout();
+        boostFrame.SuspendLayout();
+        ((System.ComponentModel.ISupportInitialize)toolsPic).BeginInit();
+        applicationSettings.SuspendLayout();
+        applicationFrame.SuspendLayout();
+        ((System.ComponentModel.ISupportInitialize)settingsPic).BeginInit();
+        SuspendLayout();
+        // 
+        // timerTopWindowCheck
+        // 
+        timerTopWindowCheck.Enabled = true;
+        timerTopWindowCheck.Interval = 1000;
+        timerTopWindowCheck.Tick += TimerTopWindowCheck_Tick;
+        // 
+        // closeButton
+        // 
+        closeButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+        closeButton.DialogResult = DialogResult.Cancel;
+        closeButton.Location = new Point(305, 576);
+        closeButton.Margin = new Padding(4, 5, 4, 5);
+        closeButton.Name = "closeButton";
+        closeButton.Size = new Size(100, 35);
+        closeButton.TabIndex = 0;
+        closeButton.Text = "&Close";
+        closeButton.UseVisualStyleBackColor = true;
+        closeButton.Click += BtnClose_Click;
+        // 
+        // exitButton
+        // 
+        exitButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+        exitButton.Location = new Point(0, 576);
+        exitButton.Margin = new Padding(4, 5, 4, 5);
+        exitButton.Name = "exitButton";
+        exitButton.Size = new Size(100, 35);
+        exitButton.TabIndex = 0;
+        exitButton.Text = "&Exit";
+        exitButton.UseVisualStyleBackColor = true;
+        exitButton.Click += BtnExit_Click;
+        // 
+        // allTabs
+        // 
+        allTabs.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+        allTabs.Controls.Add(prioList);
+        allTabs.Controls.Add(boostSettings);
+        allTabs.Controls.Add(applicationSettings);
+        allTabs.Location = new Point(0, 0);
+        allTabs.Margin = new Padding(4, 5, 4, 5);
+        allTabs.Name = "allTabs";
+        allTabs.SelectedIndex = 0;
+        allTabs.Size = new Size(413, 559);
+        allTabs.TabIndex = 0;
+        // 
+        // prioList
+        // 
+        prioList.Controls.Add(logList);
+        prioList.Controls.Add(infoLabel);
+        prioList.Controls.Add(logoPic);
+        prioList.Location = new Point(4, 29);
+        prioList.Margin = new Padding(4, 5, 4, 5);
+        prioList.Name = "prioList";
+        prioList.Padding = new Padding(4, 5, 4, 5);
+        prioList.Size = new Size(405, 526);
+        prioList.TabIndex = 0;
+        prioList.Text = "prioList";
+        prioList.UseVisualStyleBackColor = true;
+        // 
+        // logList
+        // 
+        logList.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+        logList.Columns.AddRange(new ColumnHeader[] { clmTime, clmWindow });
+        logList.Location = new Point(4, 105);
+        logList.Margin = new Padding(4, 5, 4, 5);
+        logList.Name = "logList";
+        logList.Size = new Size(397, 432);
+        logList.TabIndex = 0;
+        logList.UseCompatibleStateImageBehavior = false;
+        logList.View = View.Details;
+        // 
+        // clmTime
+        // 
+        clmTime.Text = "Time";
+        clmTime.Width = 48;
+        // 
+        // clmWindow
+        // 
+        clmWindow.Text = "Window title";
+        clmWindow.Width = 242;
+        // 
+        // infoLabel
+        // 
+        infoLabel.Location = new Point(103, 25);
+        infoLabel.Margin = new Padding(4, 0, 4, 0);
+        infoLabel.Name = "infoLabel";
+        infoLabel.Size = new Size(289, 75);
+        infoLabel.TabIndex = 0;
+        infoLabel.Text = "List of applications boosted with higher prio, when having focus.";
+        // 
+        // logoPic
+        // 
+        logoPic.Image = (Image)resources.GetObject("logoPic.Image");
+        logoPic.Location = new Point(11, 25);
+        logoPic.Margin = new Padding(4, 5, 4, 5);
+        logoPic.Name = "logoPic";
+        logoPic.Size = new Size(64, 64);
+        logoPic.SizeMode = PictureBoxSizeMode.AutoSize;
+        logoPic.TabIndex = 0;
+        logoPic.TabStop = false;
+        // 
+        // boostSettings
+        // 
+        boostSettings.Controls.Add(boostFrame);
+        boostSettings.Controls.Add(settingsInfoText);
+        boostSettings.Controls.Add(toolsPic);
+        boostSettings.Location = new Point(4, 29);
+        boostSettings.Margin = new Padding(4, 5, 4, 5);
+        boostSettings.Name = "boostSettings";
+        boostSettings.Padding = new Padding(4, 5, 4, 5);
+        boostSettings.Size = new Size(405, 526);
+        boostSettings.TabIndex = 1;
+        boostSettings.Text = "Boost settings";
+        boostSettings.UseVisualStyleBackColor = true;
+        // 
+        // boostFrame
+        // 
+        boostFrame.Controls.Add(inactiveList);
+        boostFrame.Controls.Add(inactiveLabel);
+        boostFrame.Controls.Add(activeList);
+        boostFrame.Controls.Add(activeLabel);
+        boostFrame.Controls.Add(timerSlider);
+        boostFrame.Controls.Add(refreshLabel);
+        boostFrame.Controls.Add(boostExplorerOption);
+        boostFrame.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+        boostFrame.Location = new Point(12, 134);
+        boostFrame.Margin = new Padding(4, 5, 4, 5);
+        boostFrame.Name = "boostFrame";
+        boostFrame.Padding = new Padding(4, 5, 4, 5);
+        boostFrame.Size = new Size(380, 377);
+        boostFrame.TabIndex = 1;
+        boostFrame.TabStop = false;
+        boostFrame.Text = "Boost settings";
+        boostFrame.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+        // 
+        // inactiveList
+        // 
+        inactiveList.DropDownStyle = ComboBoxStyle.DropDownList;
+        inactiveList.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+        inactiveList.FormattingEnabled = true;
+        inactiveList.Items.AddRange(new object[] { "Default", "Normal", "BelowNormal", "Idle (not a good idea)" });
+        inactiveList.Location = new Point(179, 146);
+        inactiveList.Margin = new Padding(4, 5, 4, 5);
+        inactiveList.Name = "inactiveList";
+        inactiveList.Size = new Size(189, 25);
+        inactiveList.TabIndex = 6;
+        // 
+        // inactiveLabel
+        // 
+        inactiveLabel.AutoSize = true;
+        inactiveLabel.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+        inactiveLabel.Location = new Point(4, 151);
+        inactiveLabel.Margin = new Padding(4, 0, 4, 0);
+        inactiveLabel.Name = "inactiveLabel";
+        inactiveLabel.Size = new Size(161, 17);
+        inactiveLabel.TabIndex = 5;
+        inactiveLabel.Text = "Force inactive window to";
+        // 
+        // activeList
+        // 
+        activeList.DropDownStyle = ComboBoxStyle.DropDownList;
+        activeList.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+        activeList.FormattingEnabled = true;
+        activeList.Items.AddRange(new object[] { "AboveNormal", "High", "RealTime (dangerous)" });
+        activeList.Location = new Point(179, 105);
+        activeList.Margin = new Padding(4, 5, 4, 5);
+        activeList.Name = "activeList";
+        activeList.Size = new Size(189, 25);
+        activeList.TabIndex = 4;
+        // 
+        // activeLabel
+        // 
+        activeLabel.AutoSize = true;
+        activeLabel.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+        activeLabel.Location = new Point(4, 109);
+        activeLabel.Margin = new Padding(4, 0, 4, 0);
+        activeLabel.Name = "activeLabel";
+        activeLabel.Size = new Size(135, 17);
+        activeLabel.TabIndex = 3;
+        activeLabel.Text = "Set active window to";
+        // 
+        // timerSlider
+        // 
+        timerSlider.Location = new Point(159, 60);
+        timerSlider.Maximum = 69;
+        timerSlider.Minimum = 1;
+        timerSlider.Name = "timerSlider";
+        timerSlider.Size = new Size(217, 23);
+        timerSlider.TabIndex = 2;
+        timerSlider.TabStop = true;
+        timerSlider.Value = 1;
+        timerSlider.Scroll += HsbTimer_Scroll;
+        // 
+        // refreshLabel
+        // 
+        refreshLabel.AutoSize = true;
+        refreshLabel.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+        refreshLabel.Location = new Point(4, 66);
+        refreshLabel.Margin = new Padding(4, 0, 4, 0);
+        refreshLabel.Name = "refreshLabel";
+        refreshLabel.Size = new Size(146, 17);
+        refreshLabel.TabIndex = 1;
+        refreshLabel.Text = "Refresh every 5 secs.";
+        // 
+        // boostExplorerOption
+        // 
+        boostExplorerOption.AutoSize = true;
+        boostExplorerOption.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+        boostExplorerOption.Location = new Point(8, 29);
+        boostExplorerOption.Margin = new Padding(4, 5, 4, 5);
+        boostExplorerOption.Name = "boostExplorerOption";
+        boostExplorerOption.Size = new Size(121, 21);
+        boostExplorerOption.TabIndex = 0;
+        boostExplorerOption.Text = "Boost explorer";
+        boostExplorerOption.UseVisualStyleBackColor = true;
+        // 
+        // settingsInfoText
+        // 
+        settingsInfoText.Location = new Point(103, 25);
+        settingsInfoText.Margin = new Padding(4, 0, 4, 0);
+        settingsInfoText.Name = "settingsInfoText";
+        settingsInfoText.Size = new Size(259, 98);
+        settingsInfoText.TabIndex = 0;
+        settingsInfoText.Text = "Boost settings:\r\nHere you can configure \r\nhow the program will boost \r\nyour applications.\r\n";
+        // 
+        // toolsPic
+        // 
+        toolsPic.Image = (Image)resources.GetObject("toolsPic.Image");
+        toolsPic.Location = new Point(11, 25);
+        toolsPic.Margin = new Padding(4, 5, 4, 5);
+        toolsPic.Name = "toolsPic";
+        toolsPic.Size = new Size(64, 64);
+        toolsPic.SizeMode = PictureBoxSizeMode.AutoSize;
+        toolsPic.TabIndex = 2;
+        toolsPic.TabStop = false;
+        // 
+        // applicationSettings
+        // 
+        applicationSettings.Controls.Add(applicationFrame);
+        applicationSettings.Controls.Add(applicationInfo);
+        applicationSettings.Controls.Add(settingsPic);
+        applicationSettings.Location = new Point(4, 29);
+        applicationSettings.Margin = new Padding(4, 5, 4, 5);
+        applicationSettings.Name = "applicationSettings";
+        applicationSettings.Size = new Size(405, 526);
+        applicationSettings.TabIndex = 2;
+        applicationSettings.Text = "Application settings";
+        applicationSettings.UseVisualStyleBackColor = true;
+        // 
+        // applicationFrame
+        // 
+        applicationFrame.Controls.Add(applicationPriorityList);
+        applicationFrame.Controls.Add(applicationPriorityLabel);
+        applicationFrame.Controls.Add(startHiddenOption);
+        applicationFrame.Controls.Add(startBalloonOption);
+        applicationFrame.Controls.Add(showPopupOption);
+        applicationFrame.Controls.Add(autostartOption);
+        applicationFrame.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
+        applicationFrame.Location = new Point(12, 135);
+        applicationFrame.Margin = new Padding(4, 5, 4, 5);
+        applicationFrame.Name = "applicationFrame";
+        applicationFrame.Padding = new Padding(4, 5, 4, 5);
+        applicationFrame.Size = new Size(380, 355);
+        applicationFrame.TabIndex = 1;
+        applicationFrame.TabStop = false;
+        applicationFrame.Text = "Application settings";
+        applicationFrame.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+        // 
+        // applicationPriorityList
+        // 
+        applicationPriorityList.DropDownStyle = ComboBoxStyle.DropDownList;
+        applicationPriorityList.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+        applicationPriorityList.FormattingEnabled = true;
+        applicationPriorityList.Items.AddRange(new object[] { "Normal", "BelowNormal" });
+        applicationPriorityList.Location = new Point(181, 168);
+        applicationPriorityList.Margin = new Padding(4, 5, 4, 5);
+        applicationPriorityList.Name = "applicationPriorityList";
+        applicationPriorityList.Size = new Size(189, 25);
+        applicationPriorityList.TabIndex = 8;
+        // 
+        // applicationPriorityLabel
+        // 
+        applicationPriorityLabel.AutoSize = true;
+        applicationPriorityLabel.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+        applicationPriorityLabel.Location = new Point(7, 172);
+        applicationPriorityLabel.Margin = new Padding(4, 0, 4, 0);
+        applicationPriorityLabel.Name = "applicationPriorityLabel";
+        applicationPriorityLabel.Size = new Size(124, 17);
+        applicationPriorityLabel.TabIndex = 7;
+        applicationPriorityLabel.Text = "Application priority";
+        // 
+        // startHiddenOption
+        // 
+        startHiddenOption.AutoSize = true;
+        startHiddenOption.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+        startHiddenOption.Location = new Point(8, 65);
+        startHiddenOption.Margin = new Padding(4, 5, 4, 5);
+        startHiddenOption.Name = "startHiddenOption";
+        startHiddenOption.Size = new Size(107, 21);
+        startHiddenOption.TabIndex = 1;
+        startHiddenOption.Text = "Start hidden";
+        startHiddenOption.UseVisualStyleBackColor = true;
+        // 
+        // startBalloonOption
+        // 
+        startBalloonOption.AutoSize = true;
+        startBalloonOption.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+        startBalloonOption.Location = new Point(29, 100);
+        startBalloonOption.Margin = new Padding(4, 5, 4, 5);
+        startBalloonOption.Name = "startBalloonOption";
+        startBalloonOption.Size = new Size(162, 21);
+        startBalloonOption.TabIndex = 2;
+        startBalloonOption.Text = "Show balloon at start";
+        startBalloonOption.UseVisualStyleBackColor = true;
+        // 
+        // showPopupOption
+        // 
+        showPopupOption.AutoSize = true;
+        showPopupOption.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+        showPopupOption.Location = new Point(8, 135);
+        showPopupOption.Margin = new Padding(4, 5, 4, 5);
+        showPopupOption.Name = "showPopupOption";
+        showPopupOption.Size = new Size(198, 21);
+        showPopupOption.TabIndex = 3;
+        showPopupOption.Text = "Show balloon when hidden";
+        showPopupOption.UseVisualStyleBackColor = true;
+        // 
+        // autostartOption
+        // 
+        autostartOption.AutoSize = true;
+        autostartOption.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+        autostartOption.Location = new Point(8, 28);
+        autostartOption.Margin = new Padding(4, 5, 4, 5);
+        autostartOption.Name = "autostartOption";
+        autostartOption.Size = new Size(144, 21);
+        autostartOption.TabIndex = 0;
+        autostartOption.Text = "Start with windows";
+        autostartOption.UseVisualStyleBackColor = true;
+        autostartOption.CheckedChanged += ChkAutostart_CheckedChanged;
+        // 
+        // applicationInfo
+        // 
+        applicationInfo.Location = new Point(103, 25);
+        applicationInfo.Margin = new Padding(4, 0, 4, 0);
+        applicationInfo.Name = "applicationInfo";
+        applicationInfo.Size = new Size(259, 98);
+        applicationInfo.TabIndex = 0;
+        applicationInfo.Text = "Application settings:\r\nHere you can configure \r\nhow the program will behave.";
+        // 
+        // settingsPic
+        // 
+        settingsPic.Image = (Image)resources.GetObject("settingsPic.Image");
+        settingsPic.Location = new Point(11, 25);
+        settingsPic.Margin = new Padding(4, 5, 4, 5);
+        settingsPic.Name = "settingsPic";
+        settingsPic.Size = new Size(64, 64);
+        settingsPic.SizeMode = PictureBoxSizeMode.AutoSize;
+        settingsPic.TabIndex = 6;
+        settingsPic.TabStop = false;
+        // 
+        // trayIcon
+        // 
+        trayIcon.BalloonTipIcon = ToolTipIcon.Info;
+        trayIcon.Icon = (Icon)resources.GetObject("trayIcon.Icon");
+        trayIcon.Text = "MarcusMedinaPro (formerly LunaWorX.net) TopWinPrio";
+        trayIcon.Visible = true;
+        trayIcon.BalloonTipClicked += TrayIcon_BalloonTipClicked;
+        trayIcon.MouseClick += TrayIcon_MouseClick;
+        // 
+        // checkBox5
+        // 
+        checkBox5.AutoSize = true;
+        checkBox5.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+        checkBox5.Location = new Point(137, 19);
+        checkBox5.Name = "checkBox5";
+        checkBox5.Size = new Size(83, 17);
+        checkBox5.TabIndex = 9;
+        checkBox5.Text = "Start hidden";
+        checkBox5.UseVisualStyleBackColor = true;
+        // 
+        // checkBox6
+        // 
+        checkBox6.AutoSize = true;
+        checkBox6.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+        checkBox6.Location = new Point(137, 38);
+        checkBox6.Name = "checkBox6";
+        checkBox6.Size = new Size(125, 17);
+        checkBox6.TabIndex = 8;
+        checkBox6.Text = "Show balloon at start";
+        checkBox6.UseVisualStyleBackColor = true;
+        // 
+        // checkBox7
+        // 
+        checkBox7.AutoSize = true;
+        checkBox7.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+        checkBox7.Location = new Point(6, 38);
+        checkBox7.Name = "checkBox7";
+        checkBox7.Size = new Size(154, 17);
+        checkBox7.TabIndex = 7;
+        checkBox7.Text = "Show balloon when hidden";
+        checkBox7.UseVisualStyleBackColor = true;
+        // 
+        // checkBox8
+        // 
+        checkBox8.AutoSize = true;
+        checkBox8.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+        checkBox8.Location = new Point(7, 19);
+        checkBox8.Name = "checkBox8";
+        checkBox8.Size = new Size(114, 17);
+        checkBox8.TabIndex = 6;
+        checkBox8.Text = "Start with windows";
+        checkBox8.UseVisualStyleBackColor = true;
+        // 
+        // comboBox1
+        // 
+        comboBox1.DropDownStyle = ComboBoxStyle.DropDownList;
+        comboBox1.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+        comboBox1.FormattingEnabled = true;
+        comboBox1.Items.AddRange(new object[] { "Default", "Normal", "BelowNormal", "Idle (not a good idea)" });
+        comboBox1.Location = new Point(134, 95);
+        comboBox1.Name = "comboBox1";
+        comboBox1.Size = new Size(143, 25);
+        comboBox1.TabIndex = 11;
+        // 
+        // label5
+        // 
+        label5.AutoSize = true;
+        label5.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+        label5.Location = new Point(3, 98);
+        label5.Name = "label5";
+        label5.Size = new Size(125, 13);
+        label5.TabIndex = 10;
+        label5.Text = "Force inactive window to";
+        // 
+        // comboBox2
+        // 
+        comboBox2.DropDownStyle = ComboBoxStyle.DropDownList;
+        comboBox2.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+        comboBox2.FormattingEnabled = true;
+        comboBox2.Items.AddRange(new object[] { "AboveNormal", "High", "RealTime (dangerous)" });
+        comboBox2.Location = new Point(134, 68);
+        comboBox2.Name = "comboBox2";
+        comboBox2.Size = new Size(143, 25);
+        comboBox2.TabIndex = 9;
+        // 
+        // label6
+        // 
+        label6.AutoSize = true;
+        label6.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+        label6.Location = new Point(3, 71);
+        label6.Name = "label6";
+        label6.Size = new Size(106, 13);
+        label6.TabIndex = 8;
+        label6.Text = "Set active window to";
+        // 
+        // hScrollBar1
+        // 
+        hScrollBar1.Location = new Point(119, 39);
+        hScrollBar1.Maximum = 69;
+        hScrollBar1.Minimum = 1;
+        hScrollBar1.Name = "hScrollBar1";
+        hScrollBar1.Size = new Size(163, 17);
+        hScrollBar1.TabIndex = 7;
+        hScrollBar1.Value = 1;
+        // 
+        // label7
+        // 
+        label7.AutoSize = true;
+        label7.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+        label7.Location = new Point(3, 43);
+        label7.Name = "label7";
+        label7.Size = new Size(110, 13);
+        label7.TabIndex = 6;
+        label7.Text = "Refresh every 5 secs.";
+        // 
+        // checkBox9
+        // 
+        checkBox9.AutoSize = true;
+        checkBox9.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+        checkBox9.Location = new Point(6, 19);
+        checkBox9.Name = "checkBox9";
+        checkBox9.Size = new Size(93, 17);
+        checkBox9.TabIndex = 5;
+        checkBox9.Text = "Boost explorer";
+        checkBox9.UseVisualStyleBackColor = true;
+        // 
+        // MainForm
+        // 
+        AutoScaleDimensions = new SizeF(120F, 120F);
+        AutoScaleMode = AutoScaleMode.Dpi;
+        CancelButton = closeButton;
+        ClientSize = new Size(413, 625);
+        ControlBox = false;
+        Controls.Add(exitButton);
+        Controls.Add(closeButton);
+        Controls.Add(allTabs);
+        Margin = new Padding(4, 5, 4, 5);
+        Name = "MainForm";
+        Text = "MarcusMedinaPro (formerly LunaWorX.net) TopWinPrio";
+        Activated += FrmPrio_Activated;
+        FormClosed += FrmPrio_FormClosed;
+        Load += FrmPrio_Load;
+        allTabs.ResumeLayout(false);
+        prioList.ResumeLayout(false);
+        prioList.PerformLayout();
+        ((System.ComponentModel.ISupportInitialize)logoPic).EndInit();
+        boostSettings.ResumeLayout(false);
+        boostSettings.PerformLayout();
+        boostFrame.ResumeLayout(false);
+        boostFrame.PerformLayout();
+        ((System.ComponentModel.ISupportInitialize)toolsPic).EndInit();
+        applicationSettings.ResumeLayout(false);
+        applicationSettings.PerformLayout();
+        applicationFrame.ResumeLayout(false);
+        applicationFrame.PerformLayout();
+        ((System.ComponentModel.ISupportInitialize)settingsPic).EndInit();
+        ResumeLayout(false);
+    }
 
-        #endregion
+    #endregion
 
-        private System.Windows.Forms.Label activeLabel;
+    private System.Windows.Forms.Label activeLabel;
         private System.Windows.Forms.ComboBox activeList;
         private System.Windows.Forms.TabControl allTabs;
         private System.Windows.Forms.GroupBox applicationFrame;

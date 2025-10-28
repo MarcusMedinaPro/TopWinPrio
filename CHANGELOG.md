@@ -7,16 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.0.0] - 2025-10-26
 
-### Changed - .NET 6 Migration with Comprehensive C# 10 Modernization
-- **BREAKING**: Migrated from .NET Framework 4.8 to .NET 6 (cross-platform .NET)
+### Changed - .NET 8 Migration with Comprehensive C# 12 Modernization
+- **BREAKING**: Migrated from .NET Framework 4.8 to .NET 8 LTS (cross-platform .NET)
 - **Project Structure**: Converted to SDK-style .csproj format
   - Reduced from 135 lines (old-style) to 53 lines (SDK-style)
   - Implicit file inclusion with globbing patterns
   - Modern MSBuild targets and properties
-  - Target Framework: `net6.0-windows` with `UseWindowsForms=true`
-  - C# Language Version: 10.0
+  - Target Framework: `net8.0-windows` with `UseWindowsForms=true`
+  - C# Language Version: 12.0
 
-### Added - Modern C# 10 Features
+### Added - Modern C# 10+ Features
 - **Global Usings** (`GlobalUsings.cs`): Centralized common namespace imports
   - `global using System;`
   - `global using System.Diagnostics;`
@@ -78,6 +78,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `NativeMethods.cs`: Removed redundant usings, target-typed new for StringBuilder
   - `RegistryTools.cs`: Using declarations, file-scoped namespace
 
+- **Migrated test project to .NET 6**:
+  - Converted `TopWinPrio.Tests.csproj` to SDK-style project
+  - Updated MSTest packages to latest versions (3.6.3)
+  - Added coverlet.collector for code coverage
+  - Applied file-scoped namespace to test files
+  - Modernized to C# 10 syntax
+
 ### Fixed - CodeQL Security & Quality Warnings
 - **Replaced generic catch clauses with specific exception types**:
   - `SetProcessPrio()`: Now catches `ArgumentException`, `InvalidOperationException`, `Win32Exception`, `NotSupportedException`
@@ -95,25 +102,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bumped version from 2.1.0 to **3.0.0** (major version for .NET 6 migration)
 - Updated `AssemblyInfo.cs`: `AssemblyVersion` and `AssemblyFileVersion` to 3.0.0.0
 
-### Benefits of .NET 6 Migration
+### Benefits of .NET 8 Migration
 - **Cross-Platform .NET**: Modern, unified .NET platform (no longer .NET Framework)
 - **Performance**: Significant runtime performance improvements over .NET Framework
-- **Language Features**: Access to C# 10 and future C# versions
-- **Long-Term Support**: .NET 6 LTS supported until November 2024
+- **Language Features**: Access to C# 12 and future C# versions (collection expressions, primary constructors, etc)
+- **Long-Term Support**: .NET 8 LTS supported until November 2026
 - **Modern Tooling**: Better IDE support, SDK-style projects, simplified build system
 - **Improved APIs**: Enhanced BCL with spans, value tuples, and async improvements
 - **Smaller Deployment**: Self-contained and trimmed deployments available
+- **Security**: Active security updates and patches through November 2026
 
 ### Runtime Requirements
-- Requires .NET 6 Desktop Runtime (Windows Forms support)
+- Requires .NET 8 Desktop Runtime (Windows Forms support)
 - Windows 10 1607+ or Windows 11
 - Previous .NET Framework 4.8 version available on `net4.8` branch (tagged `baseline-net4.8`)
 
 ### Migration Notes
-- **.NET 6 vs .NET Framework**: This is **cross-platform .NET**, not .NET Framework
-- **Breaking Change**: Applications must install .NET 6 runtime (not included in Windows by default)
+- **.NET 8 vs .NET Framework**: This is **cross-platform .NET**, not .NET Framework
+- **Breaking Change**: Applications must install .NET 8 runtime (not included in Windows by default)
 - **Compatibility**: Full Windows Forms API compatibility maintained
 - **Legacy Branch**: .NET Framework 4.8 code preserved on `net4.8` branch for reference
+- **Upgrade from .NET 6**: If previously installed .NET 6, upgrade to .NET 8 for continued support
 
 ## [2.1.0] - 2025-10-26
 

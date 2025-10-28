@@ -14,6 +14,12 @@
         "licenseName": "MIT",
         "licenseFile": "LICENSE.txt"
       }
+    },
+    "orderingRules": {
+      "usingDirectivesPlacement": "outsideNamespace"
+    },
+    "layoutRules": {
+      "newlineAtEndOfFile": "require"
     }
   }
 }

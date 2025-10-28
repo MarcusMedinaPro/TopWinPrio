@@ -4,46 +4,44 @@
 // </copyright>
 //----------------------------------------------------------------------------------------------------------------
 
-namespace TopWinPrio.Tests
+using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+namespace TopWinPrio.Tests;
+
+[TestClass]
+public class RegistryToolsTests
 {
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Microsoft.Win32;
-    using TopWinPrio;
+    private const string TestKeyName = "TopWinPrio.Tests.AutoStart";
+    private static readonly string DummyPath = typeof(RegistryToolsTests).Assembly.Location;
 
-    [TestClass]
-    public class RegistryToolsTests
+    [TestCleanup]
+    public void Cleanup()
     {
-        private const string TestKeyName = "TopWinPrio.Tests.AutoStart";
-        private static readonly string DummyPath = typeof(RegistryToolsTests).Assembly.Location;
-
-        [TestCleanup]
-        public void Cleanup()
+        try
         {
-            try
-            {
-                RegistryTools.RemoveAutoStart(TestKeyName);
-            }
-            catch (System.ArgumentException)
-            {
-                // Ignore missing value removal in cleanup.
-            }
-        }
-
-        [TestMethod]
-        public void AutoStart_IsDisabled_WhenValueNotPresent()
-        {
-            Cleanup();
-            Assert.IsFalse(RegistryTools.IsAutoStartEnabled(TestKeyName, DummyPath));
-        }
-
-        [TestMethod]
-        public void AutoStart_CanBeEnabledAndDisabled()
-        {
-            RegistryTools.SetAutoStart(TestKeyName, DummyPath);
-            Assert.IsTrue(RegistryTools.IsAutoStartEnabled(TestKeyName, DummyPath));
-
             RegistryTools.RemoveAutoStart(TestKeyName);
-            Assert.IsFalse(RegistryTools.IsAutoStartEnabled(TestKeyName, DummyPath));
         }
+        catch (ArgumentException)
+        {
+            // Ignore missing value removal in cleanup.
+        }
+    }
+
+    [TestMethod]
+    public void AutoStart_IsDisabled_WhenValueNotPresent()
+    {
+        Cleanup();
+        Assert.IsFalse(RegistryTools.IsAutoStartEnabled(TestKeyName, DummyPath));
+    }
+
+    [TestMethod]
+    public void AutoStart_CanBeEnabledAndDisabled()
+    {
+        RegistryTools.SetAutoStart(TestKeyName, DummyPath);
+        Assert.IsTrue(RegistryTools.IsAutoStartEnabled(TestKeyName, DummyPath));
+
+        RegistryTools.RemoveAutoStart(TestKeyName);
+        Assert.IsFalse(RegistryTools.IsAutoStartEnabled(TestKeyName, DummyPath));
     }
 }
