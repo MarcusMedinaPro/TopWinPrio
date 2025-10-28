@@ -24,10 +24,10 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Restore dependencies
-        run: dotnet restore TopWinPrio.CS/TopWinPrio.sln
+        run: dotnet restore TopWinPrio.sln
 
       - name: Build Release configuration
-        run: dotnet build TopWinPrio.CS/TopWinPrio.sln --configuration Release --no-restore
+        run: dotnet build TopWinPrio.sln --configuration Release --no-restore
 
       - name: Run unit tests
         run: dotnet test TopWinPrio.Tests/TopWinPrio.Tests.csproj --configuration Release --no-build --logger trx
@@ -64,7 +64,7 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Restore packages
-        run: dotnet restore TopWinPrio.CS/TopWinPrio.sln
+        run: dotnet restore TopWinPrio.sln
 
       # CodeQL Security Analysis
       - name: Initialize CodeQL
@@ -74,7 +74,7 @@ jobs:
           queries: security-extended,security-and-quality
 
       - name: Build for CodeQL Analysis
-        run: dotnet build TopWinPrio.CS/TopWinPrio.sln --configuration Release --no-restore
+        run: dotnet build TopWinPrio.sln --configuration Release --no-restore
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
@@ -82,7 +82,7 @@ jobs:
       # Code Analysis
       - name: Run Enhanced Code Analysis
         run: |
-          dotnet build TopWinPrio.CS/TopWinPrio.sln --configuration Release --no-restore /p:TreatWarningsAsErrors=false > CodeAnalysis-Report.log 2>&1
+          dotnet build TopWinPrio.sln --configuration Release --no-restore /p:TreatWarningsAsErrors=false > CodeAnalysis-Report.log 2>&1
         continue-on-error: true
 
       # Dependency vulnerability scanning
