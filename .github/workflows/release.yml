@@ -32,14 +32,20 @@ jobs:
       - name: Run unit tests
         run: dotnet test TopWinPrio.Tests/TopWinPrio.Tests.csproj --configuration Release --no-build --logger trx
 
+      - name: List build output
+        run: |
+          Write-Host "=== Checking build output locations ===" -ForegroundColor Cyan
+          Get-ChildItem -Path . -Filter "*.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object FullName
+          Get-ChildItem -Path . -Filter "TopWinPrio.exe" -Recurse -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "Found: $($_.FullName)" -ForegroundColor Green }
+
       - name: Upload unsigned binaries
         uses: actions/upload-artifact@v4
         with:
           name: unsigned-bin
           path: |
-            TopWinPrio.CS/TopWinPrio/bin/Release/net8.0-windows/*.exe
-            TopWinPrio.CS/TopWinPrio/bin/Release/net8.0-windows/*.dll
-            !TopWinPrio.CS/TopWinPrio/bin/Release/net8.0-windows/*.pdb
+            TopWinPrio.CS/bin/Release/net8.0-windows/*.exe
+            TopWinPrio.CS/bin/Release/net8.0-windows/*.dll
+            !TopWinPrio.CS/bin/Release/net8.0-windows/*.pdb
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
