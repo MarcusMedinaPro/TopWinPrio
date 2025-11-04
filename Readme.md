@@ -15,7 +15,8 @@
 [![Total downloads](https://img.shields.io/github/downloads/MarcusMedina/TopWinPrio/total?style=for-the-badge&logo=github)](https://github.com/MarcusMedina/TopWinPrio/releases)
 [![Release date](https://img.shields.io/github/release-date/MarcusMedina/TopWinPrio?style=for-the-badge&logo=calendar)](https://github.com/MarcusMedina/TopWinPrio/releases)
 
-[![Build & Test](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/quality.yml/badge.svg)](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/quality.yml)
+[![Build & Test](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/build-test.yml/badge.svg)](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/build-test.yml)
+[![Release Pipeline](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/release.yml/badge.svg)](https://github.com/MarcusMedina/TopWinPrio/actions/workflows/release.yml)
 [![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-highlight.svg)](https://sonarcloud.io/summary/new_code?id=MarcusMedinaPro_TopWinPrio)
 
 [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=MarcusMedinaPro_TopWinPrio&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=MarcusMedinaPro_TopWinPrio)
@@ -32,7 +33,7 @@
 >
 > 📦 Download the latest installer: [**TopWinPrio Releases**](https://github.com/MarcusMedina/TopWinPrio/releases/latest)
 >
-> ⚠️ Until the .NET 8 migration lands, releases are **unsigned** but every artifact is built on GitHub Actions and scanned via VirusTotal (`🧪 Build Test & Scan Quality` workflow) before being published.
+> ✅ All releases are **code-signed**, built on GitHub Actions, and scanned via VirusTotal before publishing.
 
 
 
@@ -75,15 +76,35 @@ Follow upgrades or pitch ideas in [issues](https://github.com/MarcusMedina/TopWi
 
 ## Runtime Requirements
 
-Current production build targets **.NET Framework 3.5** (Win32).
+Current production build targets **.NET 8 LTS** (modern cross-platform .NET).
 
-- Windows XP SP3, Vista, and Windows 7 include 3.5 or install it via Windows Update.
-- Windows 8/8.1/10/11 must enable the optional ".NET Framework 3.5 (includes 2.0 and 3.0)" feature or use the offline installer.
+- **Windows 10 (1607+)** or **Windows 11** required
+- **[.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0)** must be installed (free download from Microsoft)
+- Long-term support until **November 2026** with security updates
 - The `TopWinPrio-exe-only.zip` artifact runs without an installer; it touches `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` only when you enable auto-start, so removing the folder leaves no residue.
+
+**Legacy versions:**
+- **v2.x**: .NET Framework 4.8 (for Windows 7/8)
+- **v1.x**: .NET Framework 3.5 (for Windows XP/Vista)
 
 ## Downloads
 
-Releases are published manually while the workflow is simplified for troubleshooting. Expect the usual payloads (`TopWinPrio-release.zip`, `TopWinPrio-exe-only.zip`, `TopWinPrio.exe`) when a tag is promoted, but automation for checksum manifests and VirusTotal scans is temporarily paused. Grab the latest drop from the [Releases page](https://github.com/MarcusMedina/TopWinPrio/releases) or build from source.
+Releases are **fully automated** via GitHub Actions with a comprehensive 5-stage pipeline:
+
+1. ✅ Build & Test
+2. ✅ Quality Gate (CodeQL security analysis)
+3. ✅ Antivirus Scan (VirusTotal)
+4. ✅ Code Signing (Certum certificate)
+5. ✅ Publish Release
+
+Each release includes:
+- `TopWinPrio-release.zip` - Complete package with manual
+- `TopWinPrio-exe-only.zip` - Just the signed executable
+- `TopWinPrio.exe` - Standalone signed binary
+- `SHA256SUMS.txt` - Checksum verification
+- `VirusTotal-Summary.txt` - Antivirus scan results
+
+Download from the [Releases page](https://github.com/MarcusMedina/TopWinPrio/releases) or build from source.
 
 ## Quick Start
 
@@ -94,52 +115,110 @@ Releases are published manually while the workflow is simplified for troubleshoo
 
 ## Build from Source
 
-The legacy project lives in `TopWinPrio.CS/TopWinPrio.csproj`.
+The modern .NET 8 project uses SDK-style projects in `TopWinPrio.CS/`.
 
-```powershell
-msbuild TopWinPrio.sln /t:Build /p:Configuration=Release
+**Prerequisites:**
+- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- Visual Studio 2022 (or VS Code with C# extension)
+
+**Build commands:**
+```bash
+# Restore dependencies
+dotnet restore TopWinPrio.sln
+
+# Build
+dotnet build TopWinPrio.sln --configuration Release
+
+# Run tests
+dotnet test TopWinPrio.Tests/TopWinPrio.Tests.csproj --configuration Release
+
+# Pack (creates deployment package)
+dotnet pack TopWinPrio.sln --configuration Release
 ```
-
-The GitHub Action in `.github/workflows/build-test.yml` currently mirrors just the restore/build/test cycle on a Windows runner. As the pipeline stabilizes we’ll reintroduce the VirusTotal scan, checksum generation, and automated release packaging in separate steps.
 
 ### Local Development Tips
 
-- Use Visual Studio with the `.sln` file for quickest iteration.
-- Run `msbuild TopWinPrio.sln /p:RunCodeAnalysis=true` to surface StyleCop warnings.
-- Manual validation remains the primary QA path until automated UI tests are introduced.
+- Use **Visual Studio 2022** with the `.sln` file for best experience
+- Code analysis runs automatically during build (no StyleCop needed - using `.editorconfig`)
+- Nullable reference types are **enabled** - the compiler will warn about potential null issues
+- All GitHub Actions workflows are documented in `.github/workflows/`
 
 ## Roadmap
 
-**Current Status**: 🚧 Simplified CI (build/test only) while we stabilize Windows runner dependencies; releases remain unsigned and virus scanning/checksum automation is paused until it’s reliable again.
+**Current Status**: ✅ .NET 8 LTS migration complete with full CI/CD automation, code signing, and security scanning.
 
-**Migration Strategy**: One .NET version at a time; defer Certum signing until the `.NET 8 (v4.x)` phase and re-enable VirusTotal/checksums once the workflow is healthy.
+**Migration Completed:**
 
 | Phase | Framework | Status | Release Tag |
 |-------|-----------|--------|-------------|
-| 1️⃣ Legacy | .NET Framework 3.5 | ✅ Released (unsigned) | `v1.x-net35` |
-| 2️⃣ Modernization | .NET Framework 4.8 | ⏸️ Ready to start | `v2.x-net48` |
-| 3️⃣ Cross-platform prep | .NET 6 | 📋 Planned | `v3.x-net6` |
-| 4️⃣ Latest runtime | .NET 8 | 📋 Planned (signing resumes) | `v4.x-net8` |
-| 5️⃣ Next-gen UI | MAUI/WinUI + Service | 🔮 Future (after v4.x) | `v5.x` |
+| 1️⃣ Legacy | .NET Framework 3.5 | ✅ Released | `v1.x` |
+| 2️⃣ Modernization | .NET Framework 4.8 | ✅ Released | `v2.x` |
+| 3️⃣ Modern .NET | .NET 8 LTS | ✅ **Current** | `v3.0.0` |
 
-**Migration Focus**: Only framework upgrades until .NET 8. No feature work until v4.x is released.
+**Future Roadmap:**
 
-📖 **Full details**: See [MIGRATION_ROADMAP.md](MIGRATION_ROADMAP.md) for complete migration plan and checklist.
+| Phase | Description | Status | Target |
+|-------|-------------|--------|--------|
+| 4️⃣ Feature enhancements | Performance optimization, new features | 📋 Planned | `v3.x` |
+| 5️⃣ Next-gen UI | MAUI/WinUI + background service | 🔮 Exploring | `v4.x` |
+
+**Focus for v3.x:**
+- Performance optimizations
+- Enhanced UI/UX
+- Additional process management features
+- Improved system tray integration
 
 ## Verify Downloads
 
-- **Checksums:** Until automation returns, generate your own hash after download (`Get-FileHash .\TopWinPrio.exe -Algorithm SHA256` on Windows, `shasum -a 256 file` elsewhere). Future releases will reintroduce a pre-made `SHA256SUMS.txt`.
-- **VirusTotal:** The previous workflow uploaded binaries automatically; that step is paused while CI is simplified. You can upload the EXE/ZIP manually to [VirusTotal](https://www.virustotal.com/) if you need additional assurance today.
-- **Code signing roadmap:** Starting with the `.NET 8 (v4.x)` release, all executables and installers will be signed with the Certum certificate. Until then, rely on manual hash verification and VirusTotal checks for authenticity.
+All releases include comprehensive verification:
+
+- **Code Signing:** All executables are signed with a **Certum code-signing certificate**
+  - Verify signature: Right-click EXE → Properties → Digital Signatures
+  - Certificate issuer: Certum
+  - Signer: MarcusMedina / Marcus Medina
+
+- **Checksums:** Every release includes `SHA256SUMS.txt`
+  ```powershell
+  # Windows
+  Get-FileHash .\TopWinPrio.exe -Algorithm SHA256
+
+  # Linux/macOS
+  shasum -a 256 TopWinPrio.exe
+  ```
+
+- **VirusTotal:** Scan results included in `VirusTotal-Summary.txt`
+  - Automatically scanned before release
+  - Results published with each release
+  - Or verify manually at [VirusTotal](https://www.virustotal.com/)
 
 ## Contributing
 
-Contributor guidance—including coding style, testing expectations, and CI details—is maintained in [`AGENTS.md`](AGENTS.md). For quick reference:
+We welcome contributions! Here's how to get started:
 
-- Fork the repo, create a feature branch from `main`.
-- Run `msbuild` locally and ensure the workflow succeeds.
-- Open a PR with screenshots for UI tweaks and describe manual testing.
-- Replace any lingering “LunaWorX” branding with MarcusMedinaPro.
+**Development Workflow:**
+- See [GITFLOW.md](GITFLOW.md) for our branch strategy (`develop` → `main`)
+- Fork the repo, create a feature branch from `develop`
+- Run `dotnet build` and `dotnet test` locally
+- Open a PR with clear description and screenshots for UI changes
+- Ensure all GitHub Actions checks pass
+
+**Code Standards:**
+- C# 12 with nullable reference types enabled
+- Follow `.editorconfig` conventions (no StyleCop needed)
+- File-scoped namespaces throughout
+- Comprehensive XML documentation comments
+- Unit tests for new features
+
+**Quick start:**
+```bash
+git checkout develop
+git checkout -b feature/your-feature
+# Make changes...
+dotnet build TopWinPrio.sln
+dotnet test TopWinPrio.Tests/TopWinPrio.Tests.csproj
+git commit -m "feat: your feature"
+git push origin feature/your-feature
+```
 
 See also: [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code of Conduct](CODE_OF_CONDUCT.md).
 

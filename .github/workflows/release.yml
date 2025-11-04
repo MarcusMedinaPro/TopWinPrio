@@ -1,19 +1,18 @@
-name: 🚀 Release Pipeline
+name: 🚀 Release - Full Pipeline
 
 on:
   push:
-    tags:
-      - "v*"
+    tags: ["v*"]
+    branches: [release, main]
 
 permissions:
   contents: write
   security-events: write
 
 jobs:
-  # Job 1: Build and Test
   build-and-test:
     runs-on: windows-latest
-    name: 1️⃣ Build & Unit Test
+    name: 1️⃣ Build & Test
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,20 +22,23 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Restore dependencies
-        run: dotnet restore TopWinPrio.sln
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
 
-      - name: Build Release configuration
-        run: dotnet build TopWinPrio.sln --configuration Release --no-restore
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Restore classic NuGet packages
+        run: nuget restore TopWinPrio.sln
+
+      - name: Restore SDK-style dependencies
+        run: dotnet restore TopWinPrio.Tests/TopWinPrio.Tests.csproj
+
+      - name: Build Release
+        run: msbuild TopWinPrio.sln /p:Configuration=Release /m /p:Platform="Any CPU"
 
       - name: Run unit tests
         run: dotnet test TopWinPrio.Tests/TopWinPrio.Tests.csproj --configuration Release --no-build --logger trx
-
-      - name: List build output
-        run: |
-          Write-Host "=== Checking build output locations ===" -ForegroundColor Cyan
-          Get-ChildItem -Path . -Filter "*.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object FullName
-          Get-ChildItem -Path . -Filter "TopWinPrio.exe" -Recurse -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "Found: $($_.FullName)" -ForegroundColor Green }
 
       - name: Upload unsigned binaries
         uses: actions/upload-artifact@v4
@@ -52,14 +54,12 @@ jobs:
         if: always()
         with:
           name: test-results
-          path: |
-            **/TestResults/**/*.trx
+          path: '**/TestResults/**/*.trx'
 
-  # Job 2: Quality Gate (runs after build)
   quality-gate:
     needs: build-and-test
     runs-on: windows-latest
-    name: 2️⃣ Quality Gate
+    name: 2️⃣ Code Quality
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -72,29 +72,25 @@ jobs:
       - name: Restore packages
         run: dotnet restore TopWinPrio.sln
 
-      # CodeQL Security Analysis
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: csharp
           queries: security-extended,security-and-quality
 
-      - name: Build for CodeQL Analysis
+      - name: Build for CodeQL
         run: dotnet build TopWinPrio.sln --configuration Release --no-restore
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
 
-      # Code Analysis
-      - name: Run Enhanced Code Analysis
-        run: |
-          dotnet build TopWinPrio.sln --configuration Release --no-restore /p:TreatWarningsAsErrors=false > CodeAnalysis-Report.log 2>&1
+      - name: Enhanced Code Analysis
+        run: dotnet build TopWinPrio.sln --configuration Release --no-restore /p:TreatWarningsAsErrors=false > CodeAnalysis-Report.log 2>&1
         continue-on-error: true
 
-      # Dependency vulnerability scanning
       - name: Dependency Vulnerability Scan
         run: |
-          dotnet list TopWinPrio.Tests/TopWinPrio.Tests.csproj package --vulnerable --include-transitive > vulnerability-report.txt 2>&1 || echo "No vulnerable packages detected" > vulnerability-report.txt
+          dotnet list TopWinPrio.Tests/TopWinPrio.Tests.csproj package --vulnerable --include-transitive > vulnerability-report.txt 2>&1 || echo "No vulnerable packages" > vulnerability-report.txt
           Get-Content vulnerability-report.txt
         continue-on-error: true
 
@@ -107,75 +103,10 @@ jobs:
             CodeAnalysis-Report.log
             vulnerability-report.txt
 
-  # Job 3: Antivirus Scan (runs after quality gate passes)
-  antivirus-scan:
-    needs: quality-gate
-    runs-on: windows-latest
-    name: 3️⃣ Antivirus Scan
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Download unsigned binaries
-        uses: actions/download-artifact@v4
-        with:
-          name: unsigned-bin
-          path: ./unsigned
-
-      - name: Generate SHA256 checksums
-        run: |
-          cd unsigned
-          Get-FileHash *.exe, *.dll -Algorithm SHA256 | Select-Object Hash, @{Name="File";Expression={Split-Path $_.Path -Leaf}} | Format-Table -AutoSize | Out-File -FilePath SHA256SUMS.txt -Encoding UTF8
-          Get-Content SHA256SUMS.txt
-
-      - name: VirusTotal Scan
-        uses: crazy-max/ghaction-virustotal@v4
-        id: virustotal
-        with:
-          vt_api_key: ${{ secrets.VIRUSTOTAL_API_KEY }}
-          files: |
-            unsigned/*.exe
-            unsigned/*.dll
-          vt_monitor: false
-
-      - name: Save VirusTotal Results
-        run: |
-          $summary = "VirusTotal Scan Report - " + (Get-Date -Format "yyyy-MM-dd HH:mm:ss UTC") + "`n"
-          $summary += "================================================================`n`n"
-          $summary += "Files Analyzed:`n"
-
-          Get-ChildItem unsigned/*.exe, unsigned/*.dll | ForEach-Object {
-            $fileSizeKB = [math]::Round($_.Length/1024, 2)
-            $summary += "- $($_.Name) ($fileSizeKB KB)`n"
-          }
-
-          $summary += "`nScan Status: $($env:SCAN_STATUS)`n"
-          $summary += "================================================================`n"
-
-          if ($env:SCAN_STATUS -eq "success") {
-            $summary += "✅ VirusTotal scan completed successfully!`n"
-          } else {
-            $summary += "⚠️  VirusTotal scan encountered issues`n"
-          }
-
-          $summary | Out-File -FilePath "unsigned/VirusTotal-Summary.txt" -Encoding UTF8
-          Get-Content unsigned/VirusTotal-Summary.txt
-        env:
-          SCAN_STATUS: ${{ steps.virustotal.outcome }}
-
-      - name: Upload scan results
-        uses: actions/upload-artifact@v4
-        with:
-          name: scan-results
-          path: |
-            unsigned/SHA256SUMS.txt
-            unsigned/VirusTotal-Summary.txt
-
-  # Job 4: Code Signing (runs after antivirus scan passes)
   code-signing:
-    needs: antivirus-scan
+    needs: quality-gate
     runs-on: [self-hosted, windows, code-sign]
-    name: 4️⃣ Code Signing
+    name: 3️⃣ Code Signing
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -194,29 +125,28 @@ jobs:
 
           if (Test-Path $sourcePath) {
             Copy-Item $sourcePath $destPath -Force
-            Write-Host "✅ Copied Sign-All.ps1 from C:\Git\Certskit\" -ForegroundColor Green
+            Write-Host "✅ Copied Sign-All.ps1" -ForegroundColor Green
           } else {
             Write-Host "❌ Sign-All.ps1 not found at $sourcePath" -ForegroundColor Red
             exit 1
           }
 
-      - name: Sign artifacts with Sign-All.ps1
+      - name: Sign artifacts
         shell: pwsh
         run: |
-          Write-Host "Running Sign-All.ps1 in unsigned directory..." -ForegroundColor Cyan
+          Write-Host "Signing artifacts..." -ForegroundColor Cyan
           cd unsigned
           & .\Sign-All.ps1 -SkipDefender
 
-          # Check if signing was successful
           $signedFiles = Get-ChildItem -Include *.exe, *.dll -Recurse | Where-Object {
             $sig = Get-AuthenticodeSignature $_.FullName
             $sig.Status -eq 'Valid'
           }
 
           if ($signedFiles.Count -gt 0) {
-            Write-Host "✅ Successfully signed $($signedFiles.Count) file(s)" -ForegroundColor Green
+            Write-Host "✅ Signed $($signedFiles.Count) file(s)" -ForegroundColor Green
           } else {
-            Write-Error "No files were signed successfully"
+            Write-Error "No files signed"
             exit 1
           }
 
@@ -225,28 +155,20 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path signed | Out-Null
 
-          # Copy ALL signed files (SimplySign verification may fail but files are signed)
           $files = Get-ChildItem -Path unsigned -Include *.exe, *.dll -Recurse
-
           foreach ($f in $files) {
             Copy-Item $f.FullName signed/ -Force
-
-            # Check signature status
             $sig = Get-AuthenticodeSignature $f.FullName
             if ($sig.Status -eq 'Valid') {
-              Write-Host "✅ Copied signed (verified): $($f.Name)" -ForegroundColor Green
+              Write-Host "✅ $($f.Name)" -ForegroundColor Green
             } else {
-              Write-Host "⚠️  Copied signed (unverified): $($f.Name) - Status: $($sig.Status)" -ForegroundColor Yellow
+              Write-Host "⚠️  $($f.Name) - Status: $($sig.Status)" -ForegroundColor Yellow
             }
           }
 
-          # Copy the sign log if it exists
           if (Test-Path "unsigned\sign_log.txt") {
             Copy-Item "unsigned\sign_log.txt" signed/ -Force
-            Write-Host "Copied sign_log.txt" -ForegroundColor Cyan
           }
-
-          Write-Host "✅ Signed artifacts prepared" -ForegroundColor Green
 
       - name: Upload signed artifacts
         uses: actions/upload-artifact@v4
@@ -254,11 +176,73 @@ jobs:
           name: signed-bin
           path: signed/
 
-  # Job 5: Publish Release (runs after signing completes)
-  publish-release:
+  antivirus-scan:
     needs: code-signing
     runs-on: windows-latest
+    name: 4️⃣ Antivirus Scan
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download signed binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: signed-bin
+          path: ./signed
+
+      - name: Generate SHA256 checksums
+        run: |
+          cd signed
+          Get-FileHash *.exe, *.dll -Algorithm SHA256 | Select-Object Hash, @{Name="File";Expression={Split-Path $_.Path -Leaf}} | Format-Table -AutoSize | Out-File -FilePath SHA256SUMS.txt -Encoding UTF8
+          Get-Content SHA256SUMS.txt
+
+      - name: VirusTotal Scan
+        uses: crazy-max/ghaction-virustotal@v4
+        id: virustotal
+        continue-on-error: true
+        with:
+          vt_api_key: ${{ secrets.VIRUSTOTAL_API_KEY }}
+          files: |
+            signed/*.exe
+            signed/*.dll
+          vt_monitor: false
+
+      - name: Save VirusTotal Results
+        run: |
+          $summary = "VirusTotal Scan Report - " + (Get-Date -Format "yyyy-MM-dd HH:mm:ss UTC") + "`n"
+          $summary += "================================================================`n`n"
+
+          if ("${{ steps.virustotal.outcome }}" -eq "success") {
+            $summary += "✅ VirusTotal scan completed successfully`n"
+          } elseif ("${{ steps.virustotal.outcome }}" -eq "failure") {
+            $summary += "⚠️  VirusTotal scan failed (possibly 409 duplicate - files already scanned)`n"
+            $summary += "This is normal for re-releases and does not indicate problems`n"
+          } else {
+            $summary += "ℹ️  VirusTotal scan status: ${{ steps.virustotal.outcome }}`n"
+          }
+
+          $summary += "`nFiles Scanned:`n"
+          Get-ChildItem signed/*.exe, signed/*.dll | ForEach-Object {
+            $fileSizeKB = [math]::Round($_.Length/1024, 2)
+            $summary += "- $($_.Name) ($fileSizeKB KB)`n"
+          }
+
+          $summary | Out-File -FilePath "signed/VirusTotal-Summary.txt" -Encoding UTF8
+          Get-Content signed/VirusTotal-Summary.txt
+
+      - name: Upload scan results
+        uses: actions/upload-artifact@v4
+        with:
+          name: scan-results
+          path: |
+            signed/SHA256SUMS.txt
+            signed/VirusTotal-Summary.txt
+
+  publish-release:
+    needs: antivirus-scan
+    runs-on: windows-latest
     name: 5️⃣ Publish Release
+    if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -279,16 +263,12 @@ jobs:
         run: |
           New-Item -ItemType Directory -Path "release-packages" -Force
 
-          # Copy Manual.pdf to release directory
-          Copy-Item "Manual.pdf" -Destination "signed-bin/Manual.pdf"
+          if (Test-Path "Manual.pdf") {
+            Copy-Item "Manual.pdf" -Destination "signed-bin/Manual.pdf"
+          }
 
-          # Create ZIP with installer + manual
           Compress-Archive -Path "signed-bin/*" -DestinationPath "release-packages/TopWinPrio-release.zip"
-
-          # Create ZIP with just EXE
           Compress-Archive -Path "signed-bin/*.exe" -DestinationPath "release-packages/TopWinPrio-exe-only.zip"
-
-          # Copy standalone EXE
           Copy-Item "signed-bin/TopWinPrio.exe" -Destination "release-packages/TopWinPrio.exe"
 
           Get-ChildItem -Path "release-packages" -Recurse

@@ -1,0 +1,52 @@
+# ⚠️ DISABLED - Replaced by release.yml
+# Build and test checks are now part of branch-specific workflows:
+# - develop.yml for develop branch
+# - test.yml for test branch
+# - release.yml for release/main branches
+
+name: 🧪 Build & Test - DISABLED
+
+on:
+  workflow_dispatch:  # Manual only
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    runs-on: windows-latest
+    name: Build and unit test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Restore classic NuGet packages
+        run: nuget restore TopWinPrio.sln
+
+      - name: Restore SDK-style/PackageReference dependencies
+        run: dotnet restore TopWinPrio.Tests/TopWinPrio.Tests.csproj
+
+      - name: Build Release configuration
+        run: msbuild TopWinPrio.sln /p:Configuration=Release /m /p:Platform="Any CPU"
+
+      - name: Run unit tests
+        run: dotnet test TopWinPrio.Tests/TopWinPrio.Tests.csproj --configuration Release --no-build --logger trx
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: |
+            **/TestResults/**/*.trx

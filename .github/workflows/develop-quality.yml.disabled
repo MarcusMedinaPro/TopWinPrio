@@ -1,0 +1,31 @@
+# ⚠️ DISABLED - Replaced by develop.yml
+# This workflow is redundant with the new develop.yml workflow.
+
+name: Develop Branch Quality Checks - DISABLED
+
+on:
+  workflow_dispatch:  # Manual only
+
+jobs:
+  quality-checks:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET 8
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore TopWinPrio.CS/TopWinPrio.sln
+
+    - name: Build
+      run: dotnet build TopWinPrio.CS/TopWinPrio.sln --configuration Release --no-restore
+
+    - name: Run tests
+      run: dotnet test TopWinPrio.Tests/TopWinPrio.Tests.csproj --configuration Release --no-build --verbosity normal
+
+    - name: Quality check passed
+      run: echo "✅ All quality checks passed! Ready to merge to main."

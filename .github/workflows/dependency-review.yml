@@ -1,10 +1,9 @@
 name: 📦 Dependency Submission
 
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+  workflow_dispatch:  # Manual only
+  schedule:
+    - cron: '0 3 * * 1'  # Weekly Monday 3 AM
 
 permissions:
   contents: write

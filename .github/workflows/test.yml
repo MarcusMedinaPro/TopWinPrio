@@ -1,0 +1,96 @@
+name: 🔍 Test - Unit Tests + Code Quality
+
+on:
+  push:
+    branches: [test]
+  pull_request:
+    branches: [test]
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    name: 1️⃣ Build & Test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Restore classic NuGet packages
+        run: nuget restore TopWinPrio.sln
+
+      - name: Restore SDK-style dependencies
+        run: dotnet restore TopWinPrio.Tests/TopWinPrio.Tests.csproj
+
+      - name: Build Release
+        run: msbuild TopWinPrio.sln /p:Configuration=Release /m /p:Platform="Any CPU"
+
+      - name: Run unit tests
+        run: dotnet test TopWinPrio.Tests/TopWinPrio.Tests.csproj --configuration Release --no-build --logger trx
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: '**/TestResults/**/*.trx'
+
+  quality-gate:
+    needs: build-and-test
+    runs-on: windows-latest
+    name: 2️⃣ Code Quality
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore packages
+        run: dotnet restore TopWinPrio.sln
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: csharp
+          queries: security-extended,security-and-quality
+
+      - name: Build for CodeQL
+        run: dotnet build TopWinPrio.sln --configuration Release --no-restore
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+      - name: Enhanced Code Analysis
+        run: dotnet build TopWinPrio.sln --configuration Release --no-restore /p:TreatWarningsAsErrors=false > CodeAnalysis-Report.log 2>&1
+        continue-on-error: true
+
+      - name: Dependency Vulnerability Scan
+        run: |
+          dotnet list TopWinPrio.Tests/TopWinPrio.Tests.csproj package --vulnerable --include-transitive > vulnerability-report.txt 2>&1 || echo "No vulnerable packages" > vulnerability-report.txt
+          Get-Content vulnerability-report.txt
+        continue-on-error: true
+
+      - name: Upload quality reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: quality-reports
+          path: |
+            CodeAnalysis-Report.log
+            vulnerability-report.txt
