@@ -76,11 +76,11 @@ Follow upgrades or pitch ideas in [issues](https://github.com/MarcusMedina/TopWi
 
 ## Runtime Requirements
 
-Current production build targets **.NET 8 LTS** (modern cross-platform .NET).
+Current production build targets **.NET 10 LTS** (modern cross-platform .NET).
 
 - **Windows 10 (1607+)** or **Windows 11** required
-- **[.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0)** must be installed (free download from Microsoft)
-- Long-term support until **November 2026** with security updates
+- **[.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0)** must be installed (free download from Microsoft)
+- Long-term support until **November 2028** with security updates
 - The `TopWinPrio-exe-only.zip` artifact runs without an installer; it touches `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` only when you enable auto-start, so removing the folder leaves no residue.
 
 **Legacy versions:**
@@ -115,10 +115,10 @@ Download from the [Releases page](https://github.com/MarcusMedina/TopWinPrio/rel
 
 ## Build from Source
 
-The modern .NET 8 project uses SDK-style projects in `TopWinPrio.CS/`.
+The modern .NET 10 project uses SDK-style projects in `TopWinPrio.CS/`.
 
 **Prerequisites:**
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 - Visual Studio 2022 (or VS Code with C# extension)
 
 **Build commands:**
@@ -145,15 +145,19 @@ dotnet pack TopWinPrio.sln --configuration Release
 
 ## Roadmap
 
-**Current Status**: ✅ .NET 8 LTS migration complete with full CI/CD automation, code signing, and security scanning.
+**Current Status**: 🚧 Migrating to .NET 10 LTS.
 
-**Migration Completed:**
+**Migration History:**
 
-| Phase | Framework | Status | Release Tag |
-|-------|-----------|--------|-------------|
-| 1️⃣ Legacy | .NET Framework 3.5 | ✅ Released | `v1.x` |
-| 2️⃣ Modernization | .NET Framework 4.8 | ✅ Released | `v2.x` |
-| 3️⃣ Modern .NET | .NET 8 LTS | ✅ **Current** | `v3.0.0` |
+| Phase | Framework | Status | Release Tag | Notes |
+|-------|-----------|--------|-------------|-------|
+| 1️⃣ Legacy | .NET Framework 3.5 | ✅ Released | `v1.x` | Original version |
+| 2️⃣ Modernization | .NET Framework 4.8 | ✅ Released | `v2.x` | Windows 7/8 support |
+| 3️⃣ Modern .NET (attempt 1) | .NET 6 | ⚠️ Unreleased | - | Version mismatch, not released |
+| 3️⃣ Modern .NET (attempt 2) | .NET 8 LTS | ⏭️ Skipped | - | Branch preserved for reference |
+| 3️⃣ Modern .NET | .NET 10 LTS | 🚧 **In Progress** | `v3.0.0` | Direct jump to latest LTS |
+
+**Transparency Note:** We encountered versioning issues during the .NET 6 migration and decided to skip .NET 8 to jump directly to .NET 10 LTS for a cleaner migration path. The `net8` branch exists as a backup reference but will not receive an official release.
 
 **Future Roadmap:**
 
