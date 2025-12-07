@@ -43,7 +43,10 @@ partial class MainForm
         timerTopWindowCheck = new Timer(components);
         closeButton = new Button();
         exitButton = new Button();
+        reclaimMemoryButton = new Button();
         allTabs = new TabControl();
+        excludedProcessesLabel = new Label();
+        excludedProcessesTextBox = new TextBox();
         prioList = new TabPage();
         logList = new ListView();
         clmTime = new ColumnHeader();
@@ -124,7 +127,19 @@ partial class MainForm
         exitButton.Text = "&Exit";
         exitButton.UseVisualStyleBackColor = true;
         exitButton.Click += BtnExit_Click;
-        // 
+        //
+        // reclaimMemoryButton
+        //
+        reclaimMemoryButton.Anchor = AnchorStyles.Bottom;
+        reclaimMemoryButton.Location = new Point(130, 576);
+        reclaimMemoryButton.Margin = new Padding(4, 5, 4, 5);
+        reclaimMemoryButton.Name = "reclaimMemoryButton";
+        reclaimMemoryButton.Size = new Size(150, 35);
+        reclaimMemoryButton.TabIndex = 1;
+        reclaimMemoryButton.Text = "Reclaim &Memory";
+        reclaimMemoryButton.UseVisualStyleBackColor = true;
+        reclaimMemoryButton.Click += ReclaimMemoryButton_Click;
+        //
         // allTabs
         // 
         allTabs.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
@@ -210,6 +225,8 @@ partial class MainForm
         // 
         // boostFrame
         // 
+        boostFrame.Controls.Add(excludedProcessesTextBox);
+        boostFrame.Controls.Add(excludedProcessesLabel);
         boostFrame.Controls.Add(inactiveList);
         boostFrame.Controls.Add(inactiveLabel);
         boostFrame.Controls.Add(activeList);
@@ -308,6 +325,28 @@ partial class MainForm
         boostExplorerOption.TabIndex = 0;
         boostExplorerOption.Text = "Boost explorer";
         boostExplorerOption.UseVisualStyleBackColor = true;
+        //
+        // excludedProcessesLabel
+        //
+        excludedProcessesLabel.AutoSize = true;
+        excludedProcessesLabel.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+        excludedProcessesLabel.Location = new Point(4, 195);
+        excludedProcessesLabel.Margin = new Padding(4, 0, 4, 0);
+        excludedProcessesLabel.Name = "excludedProcessesLabel";
+        excludedProcessesLabel.Size = new Size(200, 17);
+        excludedProcessesLabel.TabIndex = 7;
+        excludedProcessesLabel.Text = "Excluded processes (comma-separated):";
+        //
+        // excludedProcessesTextBox
+        //
+        excludedProcessesTextBox.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+        excludedProcessesTextBox.Location = new Point(8, 220);
+        excludedProcessesTextBox.Margin = new Padding(4, 5, 4, 5);
+        excludedProcessesTextBox.Name = "excludedProcessesTextBox";
+        excludedProcessesTextBox.Size = new Size(360, 23);
+        excludedProcessesTextBox.TabIndex = 8;
+        excludedProcessesTextBox.PlaceholderText = "e.g., chrome, firefox, teams";
+        excludedProcessesTextBox.TextChanged += ExcludedProcessesTextBox_TextChanged;
         // 
         // settingsInfoText
         // 
@@ -586,6 +625,7 @@ partial class MainForm
         CancelButton = closeButton;
         ClientSize = new Size(413, 625);
         ControlBox = false;
+        Controls.Add(reclaimMemoryButton);
         Controls.Add(exitButton);
         Controls.Add(closeButton);
         Controls.Add(allTabs);
@@ -657,4 +697,7 @@ partial class MainForm
         private System.Windows.Forms.Timer timerTopWindowCheck;
         private System.Windows.Forms.PictureBox toolsPic;
         private System.Windows.Forms.NotifyIcon trayIcon;
+        private System.Windows.Forms.Button reclaimMemoryButton;
+        private System.Windows.Forms.Label excludedProcessesLabel;
+        private System.Windows.Forms.TextBox excludedProcessesTextBox;
     }

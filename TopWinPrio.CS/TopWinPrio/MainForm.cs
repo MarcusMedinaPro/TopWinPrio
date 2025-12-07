@@ -155,6 +155,7 @@ public partial class MainForm : Form
             Settings.Default.BalloonStart = startBalloonOption.Checked;
             Settings.Default.StartHidden = startHiddenOption.Checked;
             Settings.Default.ApplicationPrio = applicationPriorityList.SelectedIndex;
+            Settings.Default.ExcludedProcesses = excludedProcessesTextBox.Text;
             Settings.Default.Save();
             _ = SetProcessPrio(oldProc, oldProc.LastPrio);
         }
@@ -170,6 +171,7 @@ public partial class MainForm : Form
             showPopupOption.Checked = Settings.Default.BalloonHidden;
             applicationPriorityList.SelectedIndex = Settings.Default.ApplicationPrio;
             autostartOption.Checked = RegistryTools.IsAutoStartEnabled(keyName, assemblyLocation);
+            excludedProcessesTextBox.Text = Settings.Default.ExcludedProcesses;
             HsbTimer_Scroll(null!, null!);
         }
 
@@ -348,6 +350,46 @@ public partial class MainForm : Form
                 TopMost = false;
                 _ = Focus();
             }
+        }
+
+        private void ReclaimMemoryButton_Click(object sender, EventArgs e)
+        {
+            reclaimMemoryButton.Enabled = false;
+            reclaimMemoryButton.Text = "Working...";
+            Application.DoEvents();
+
+            try
+            {
+                var mbFreed = MemoryManager.CompressMemory();
+
+                if (mbFreed >= 0)
+                {
+                    _ = MessageBox.Show(
+                        $"Memory compression completed!\n\n{mbFreed} MB of memory freed.",
+                        "Memory Reclaim Success",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                }
+                else
+                {
+                    _ = MessageBox.Show(
+                        "Memory compression failed. Check debug output for details.",
+                        "Memory Reclaim Failed",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                }
+            }
+            finally
+            {
+                reclaimMemoryButton.Enabled = true;
+                reclaimMemoryButton.Text = "Reclaim &Memory";
+            }
+        }
+
+        private void ExcludedProcessesTextBox_TextChanged(object sender, EventArgs e)
+        {
+            // Save immediately when text changes
+            Settings.Default.ExcludedProcesses = excludedProcessesTextBox.Text;
         }
 
     /// <summary>
