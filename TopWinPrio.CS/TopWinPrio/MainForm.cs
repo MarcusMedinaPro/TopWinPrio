@@ -8,6 +8,7 @@
 //----------------------------------------------------------------------------------------------------------------
 
 using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 using TopWinPrio.Properties;
 
@@ -217,10 +218,41 @@ public partial class MainForm : Form
         /// <summary>
         /// Determines if process should be boosted
         /// </summary>
-        private bool ShouldBoostProcess(Process process) =>
-            process is { Id: > 0 } &&
-            (boostExplorerOption.Checked || process.ProcessName != "explorer") &&
-            process.Id != Environment.ProcessId;
+        private bool ShouldBoostProcess(Process process)
+        {
+            if (process is not { Id: > 0 })
+                return false;
+
+            // Don't boost self
+            if (process.Id == Environment.ProcessId)
+                return false;
+
+            // Check explorer exclusion
+            if (!boostExplorerOption.Checked && process.ProcessName == "explorer")
+                return false;
+
+            // Check exclusion list
+            if (IsProcessExcluded(process.ProcessName))
+                return false;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Checks if a process is in the exclusion list
+        /// </summary>
+        private static bool IsProcessExcluded(string processName)
+        {
+            var excludedProcesses = Settings.Default.ExcludedProcesses;
+            if (string.IsNullOrWhiteSpace(excludedProcesses))
+                return false;
+
+            var excludedList = excludedProcesses
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(p => p.Trim().ToLowerInvariant());
+
+            return excludedList.Contains(processName.ToLowerInvariant());
+        }
 
     /// <summary>
     /// Creates ProcessData from process

@@ -92,4 +92,13 @@ internal static partial class NativeMethods
     [LibraryImport("user32.dll", SetLastError = false)]
     [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvStdcall)])]
     private static partial int GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+    /// <summary>
+    /// Sets the working set size for a process (used for memory trimming)
+    /// </summary>
+    [SuppressMessage("Interoperability", "SYSLIB1054:Use 'LibraryImportAttribute' instead of 'DllImportAttribute'", Justification = "LibraryImport used for modern source generation")]
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvStdcall)])]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static partial bool SetProcessWorkingSetSize(IntPtr process, nint minimumWorkingSetSize, nint maximumWorkingSetSize);
 }

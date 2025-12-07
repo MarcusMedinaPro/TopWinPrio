@@ -200,6 +200,24 @@ namespace TopWinPrio.Properties
         }
 
         /// <summary>
+        /// Gets or sets the excluded processes list (comma-separated)
+        /// </summary>
+        [DefaultSettingValue("")]
+        [DebuggerNonUserCode]
+        [UserScopedSetting]
+        public string ExcludedProcesses
+        {
+            get
+            {
+                return (string)base["ExcludedProcesses"];
+            }
+            set
+            {
+                base["ExcludedProcesses"] = value;
+            }
+        }
+
+        /// <summary>
         /// The SettingChangingEventHandler
         /// </summary>
         /// <param name="sender">The sender <see cref="object"/></param>
