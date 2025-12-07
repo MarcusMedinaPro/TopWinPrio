@@ -25,10 +25,8 @@ public static class RegistryTools
     /// </summary>
     public static bool IsAutoStartEnabled(string keyName, string assemblyLocation)
     {
-        if (string.IsNullOrEmpty(keyName) || string.IsNullOrEmpty(assemblyLocation))
-        {
-            return false;
-        }
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(keyName);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(assemblyLocation);
 
         try
         {
@@ -53,10 +51,8 @@ public static class RegistryTools
     /// </summary>
     public static void SetAutoStart(string keyName, string assemblyLocation)
     {
-        if (string.IsNullOrEmpty(keyName) || string.IsNullOrEmpty(assemblyLocation))
-        {
-            throw new ArgumentException("Key name and assembly location cannot be null or empty.");
-        }
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(keyName);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(assemblyLocation);
 
         try
         {
@@ -78,15 +74,12 @@ public static class RegistryTools
     /// </summary>
     public static void RemoveAutoStart(string keyName)
     {
-        if (string.IsNullOrEmpty(keyName))
-        {
-            throw new ArgumentException("Key name cannot be null or empty.", nameof(keyName));
-        }
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(keyName);
 
         try
         {
             using var registryKey = Registry.CurrentUser.CreateSubKey(HKCVRUNLOCATION);
-            if (registryKey?.GetValue(keyName) != null)
+            if (registryKey?.GetValue(keyName) is not null)
             {
                 registryKey.DeleteValue(keyName, false); // false = don't throw if key doesn't exist
             }

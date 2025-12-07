@@ -217,25 +217,10 @@ public partial class MainForm : Form
         /// <summary>
         /// Determines if process should be boosted
         /// </summary>
-        private bool ShouldBoostProcess(Process process)
-        {
-            if (process == null || process.Id <= 0)
-            {
-                return false;
-            }
-
-            if (!boostExplorerOption.Checked && process.ProcessName == "explorer")
-            {
-                return false;
-            }
-
-            if (process.Id == Environment.ProcessId)
-            {
-                return false;
-            }
-
-            return true;
-        }
+        private bool ShouldBoostProcess(Process process) =>
+            process is { Id: > 0 } &&
+            (boostExplorerOption.Checked || process.ProcessName != "explorer") &&
+            process.Id != Environment.ProcessId;
 
     /// <summary>
     /// Creates ProcessData from process
@@ -301,16 +286,17 @@ public partial class MainForm : Form
         var timestamp = DateTime.Now;
         ListViewItem listItem = new(timestamp.ToShortTimeString());
 
-        var windowTitle = string.IsNullOrEmpty(NativeMethods.GetTopWindowText)
-            ? process.ProcessName
-            : NativeMethods.GetTopWindowText;
+        var windowTitle = !string.IsNullOrEmpty(NativeMethods.GetTopWindowText)
+            ? NativeMethods.GetTopWindowText
+            : process.ProcessName;
 
         _ = listItem.SubItems.Add(windowTitle);
         _ = logList.Items.Insert(0, listItem);
 
-        if (logList.Items.Count > 13)
+        const int MaxLogEntries = 13;
+        if (logList.Items.Count > MaxLogEntries)
         {
-            logList.Items.RemoveAt(13);
+            logList.Items.RemoveAt(MaxLogEntries);
         }
     }
 

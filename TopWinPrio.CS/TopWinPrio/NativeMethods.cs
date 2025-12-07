@@ -17,7 +17,7 @@ namespace TopWinPrio;
 /// <summary>
 /// Native Windows API methods
 /// </summary>
-internal static class NativeMethods
+internal static partial class NativeMethods
 {
     /// <summary>
     /// Gets the handle of the foreground window
@@ -79,27 +79,17 @@ internal static class NativeMethods
         }
     }
 
-    [SuppressMessage("Security", "CA5392:Use DefaultDllImportSearchPaths attribute for P/Invokes", Justification = "Standard Windows API - user32.dll is a system library")]
-    [SuppressMessage("Interoperability", "CA1401:P/Invokes should not be visible", Justification = "Internal class - not publicly exposed")]
-    [SuppressMessage("CodeQL", "cs/unmanaged-code", Justification = "Required to get active window handle - no managed .NET API equivalent")]
-    [System.Security.SecurityCritical]
-    [PreserveSig]
-    [DllImport("user32.dll", CallingConvention = CallingConvention.Winapi, CharSet = CharSet.Unicode)]
-    private static extern IntPtr GetForegroundWindow();
+    [SuppressMessage("Interoperability", "SYSLIB1054:Use 'LibraryImportAttribute' instead of 'DllImportAttribute'", Justification = "LibraryImport used for modern source generation")]
+    [LibraryImport("user32.dll", SetLastError = false)]
+    [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvStdcall)])]
+    private static partial IntPtr GetForegroundWindow();
 
-    [SuppressMessage("Security", "CA5392:Use DefaultDllImportSearchPaths attribute for P/Invokes", Justification = "Standard Windows API - user32.dll is a system library")]
-    [SuppressMessage("Interoperability", "CA1401:P/Invokes should not be visible", Justification = "Internal class - not publicly exposed")]
-    [SuppressMessage("CodeQL", "cs/unmanaged-code", Justification = "Required to get window title from handle - no managed .NET API equivalent")]
-    [PreserveSig]
-    [DllImport("user32.dll", CallingConvention = CallingConvention.Winapi, CharSet = CharSet.Unicode)]
-    [System.Security.SecurityCritical]
+    [SuppressMessage("Interoperability", "SYSLIB1054:Use 'LibraryImportAttribute' instead of 'DllImportAttribute'", Justification = "StringBuilder not supported by LibraryImport - must use DllImport")]
+    [DllImport("user32.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode, SetLastError = false)]
     private static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
 
-    [SuppressMessage("Security", "CA5392:Use DefaultDllImportSearchPaths attribute for P/Invokes", Justification = "Standard Windows API - user32.dll is a system library")]
-    [SuppressMessage("Interoperability", "CA1401:P/Invokes should not be visible", Justification = "Internal class - not publicly exposed")]
-    [SuppressMessage("CodeQL", "cs/unmanaged-code", Justification = "Required to get process ID from window handle - no managed .NET API equivalent")]
-    [PreserveSig]
-    [DllImport("user32.dll", CallingConvention = CallingConvention.Winapi, CharSet = CharSet.Unicode)]
-    [System.Security.SecurityCritical]
-    private static extern int GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+    [SuppressMessage("Interoperability", "SYSLIB1054:Use 'LibraryImportAttribute' instead of 'DllImportAttribute'", Justification = "LibraryImport used for modern source generation")]
+    [LibraryImport("user32.dll", SetLastError = false)]
+    [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvStdcall)])]
+    private static partial int GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 }
